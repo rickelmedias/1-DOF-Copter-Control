@@ -1,4 +1,14 @@
-# Controle em tempo real de uma haste 1DOF com FreeRTOS (STM32F103)
+# 1-DOF Copter Control: controle em tempo real de uma haste 1DOF com FreeRTOS (STM32F103)
+
+![Protótipo final](report/images/photos/final_front.jpg)
+
+Repositório: <https://github.com/rickelmedias/1-DOF-Copter-Control>
+
+## Vídeo
+
+[![Vídeo do protótipo no YouTube](https://img.youtube.com/vi/UdPdqLyjeSY/hqdefault.jpg)](https://www.youtube.com/watch?v=UdPdqLyjeSY)
+
+<https://www.youtube.com/watch?v=UdPdqLyjeSY>
 
 Plataforma de estabilização ativa por empuxo: uma haste com um grau de liberdade, motor e hélice em uma ponta e sensor inercial MPU6050 na outra, mantida na horizontal por um PID rodando em FreeRTOS em uma Blue Pill (STM32F103). Projeto da disciplina **Tópicos Especiais em Engenharia da Computação II**, Centro Universitário Facens. O trabalho usa a haste como exemplo de **sistema de controle crítico** para aplicar sistemas operacionais de tempo real.
 

@@ -79,7 +79,7 @@ Blue Pill (STM32F103C8T6) & Microcontrolador Cortex-M3 a 72~MHz, cristal de 8~MH
 MPU6050 (módulo) & Acelerômetro e giroscópio de três eixos por I\textsuperscript{2}C, endereço 0x68, com o pino AD0 em nível baixo (AD0 em nível alto daria 0x69) \cite{mpu6050rm}. Alimentado em 3,3~V pelo pino 3V3 da Blue Pill; o módulo tem um regulador de 3,3~V e aceita de 3,3 a 5~V em VCC, e o sensor em si trabalha em 3,3~V, a mesma tensão dos sinais do STM32.\\
 Driver DRV8871 (módulo) & Ponte H com limite de corrente; alimentação de 6,5 a 45~V \cite{drv8871ds}. Alimentado direto pelos 12~V.\\
 Motor \textit{coreless} 0720 com hélice & Motor de corrente contínua com escovas de kit Syma, 3,7~V nominal, dimensão 7~mm de diâmetro por 20~mm de comprimento, resistência de cerca de 2~$\Omega$ medida.\\
-Indutor em série com o motor & Indutor de 220~$\mu$H e 3~A, com o fio de cobre enrolado em núcleo aberto, que filtra a corrente pulsada do PWM (Seção~\ref{sec:indutor}). A resistência do enrolamento ficou abaixo do que o multímetro de bancada resolve (as pontas encostadas já marcam 0,2 a 0,3~$\Omega$ e o indutor marcou 0,1~$\Omega$), isto é, menor que 0,3~$\Omega$.\\
+Indutor em série com o motor & Indutor toroidal de 220~$\mu$H e 3~A, com fio de cobre enrolado em núcleo toroidal (Figura~\ref{fig:fotos_potencia}), que filtra a corrente pulsada do PWM (Seção~\ref{sec:indutor}). A resistência do enrolamento ficou abaixo do que o multímetro de bancada resolve (as pontas encostadas já marcam 0,2 a 0,3~$\Omega$ e o indutor marcou 0,1~$\Omega$), isto é, menor que 0,3~$\Omega$.\\
 Fonte de 12~V & Alimenta o driver e, pelo BEC, a lógica. O consumo total estimado é inferior a 1~A (motor em torno de 0,4~A e lógica da ordem de 100~mA).\\
 BEC 12~V para 5~V & Regulador chaveado que gera os 5~V da Blue Pill.\\
 Chave deslizante de 3 terminais & Chave de duas posições ligada em série ao positivo de 5~V entre o BEC e a Blue Pill; um dos terminais fica sem uso. Para cima liga e para baixo desliga (Figura~\ref{fig:alimentacao}).\\
@@ -89,6 +89,26 @@ ST-Link V2 & Gravação e leitura de diagnóstico por SWD.\\\hline
 \end{tabularx}
 \fonte{Elaborado pelos autores (2026).}
 \end{table}
+
+As Figuras~\ref{fig:fotos_estrutura} e~\ref{fig:fotos_potencia} mostram os componentes principais.
+\begin{figure}[htbp]
+\centering\caption{Estrutura e sensor: (a) suporte da haste impresso em 3D, (b) conjunto do motor com a hélice, (c) hélice e (d) MPU6050 fixado na haste.}\label{fig:fotos_estrutura}
+\begin{minipage}[t]{.24\textwidth}\centering\includegraphics[width=\textwidth]{photos/base_3d.jpg}\\(a)\end{minipage}\hfill
+\begin{minipage}[t]{.24\textwidth}\centering\includegraphics[width=\textwidth]{photos/motor_assembly.jpg}\\(b)\end{minipage}\hfill
+\begin{minipage}[t]{.24\textwidth}\centering\includegraphics[width=\textwidth]{photos/propeller.jpg}\\(c)\end{minipage}\hfill
+\begin{minipage}[t]{.24\textwidth}\centering\includegraphics[width=\textwidth]{photos/mpu6050_mount.jpg}\\(d)\end{minipage}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+\begin{figure}[htbp]
+\centering\caption{Eletrônica e alimentação: (a) Blue Pill e driver na caixa impressa em 3D, (b) BEC com a saída de 5~V, (c) entrada de 12~V, (d) chave liga/desliga, (e) indutor toroidal de 220~$\mu$H e (f) ST-Link V2.}\label{fig:fotos_potencia}
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/stm32_driver_box.jpg}\\(a)\end{minipage}\hfill
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/bec_5v_output.jpg}\\(b)\end{minipage}\hfill
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/input_12v.jpg}\\(c)\end{minipage}\\[6pt]
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/power_switch.jpg}\\(d)\end{minipage}\hfill
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/inductor_toroid.jpg}\\(e)\end{minipage}\hfill
+\begin{minipage}[t]{.32\textwidth}\centering\includegraphics[width=\textwidth]{photos/stlink.jpg}\\(f)\end{minipage}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
 
 \section{ALIMENTAÇÃO}
 
@@ -145,9 +165,23 @@ A Blue Pill e o driver ficam dentro da caixa fechada; a base tem a haste presa p
 
 \section{PROTÓTIPO FINAL}
 
-As Figuras~\ref{fig:final_cima}, \ref{fig:final_lado} e~\ref{fig:final_rodando} mostram o protótipo final montado, com a caixa da eletrônica, o BEC, a chave, o indutor, o motor e o sensor.
-\fotofinal{final_cima}{Protótipo final, visto de cima.}{fig:final_cima}
-\fotofinal{final_lado}{Protótipo final, visto de lado.}{fig:final_lado}
+A estrutura final tem uma base de madeira, o suporte da haste impresso em 3D, a haste com o motor e a hélice em uma ponta e o MPU6050 na outra, e uma caixa impressa em 3D que abriga a Blue Pill e o driver, com a chave liga/desliga na lateral. As Figuras~\ref{fig:final_cima} a~\ref{fig:final_tras} mostram o protótipo montado.
+\begin{figure}[htbp]
+\centering\caption{Protótipo final, visto de cima.}\label{fig:final_cima}
+\includegraphics[height=.42\textheight]{photos/final_top.jpg}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+\begin{figure}[htbp]
+\centering\caption{Protótipo final: (a) visto de frente e (b) visto de lado.}\label{fig:final_lado}
+\begin{minipage}[t]{.48\textwidth}\centering\includegraphics[height=.34\textheight]{photos/final_front.jpg}\\(a)\end{minipage}\hfill
+\begin{minipage}[t]{.48\textwidth}\centering\includegraphics[height=.34\textheight]{photos/final_side_1.jpg}\\(b)\end{minipage}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+\begin{figure}[htbp]
+\centering\caption{Protótipo final, visto de trás, com a fonte, o adaptador, a caixa da eletrônica e o ST-Link.}\label{fig:final_tras}
+\includegraphics[height=.42\textheight]{photos/final_back.jpg}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
 \fotofinal{final_rodando}{Protótipo final com a haste estabilizada, em funcionamento.}{fig:final_rodando}
 
 \section{ESTUDO DA POTÊNCIA DO MOTOR}\label{sec:potencia}

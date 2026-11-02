@@ -40,3 +40,6 @@ __pycache__/
 # Binario final do firmware (versionado de proposito, para regravar pelo STM32CubeProgrammer)
 !firmware/release/
 !firmware/release/*
+
+# Fotos originais em alta resolucao (as versoes reduzidas usadas no relatorio ficam em report/images/photos/)
+report/images/project/
