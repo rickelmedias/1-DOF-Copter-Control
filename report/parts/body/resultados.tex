@@ -4,7 +4,7 @@ Os dados desta seção foram coletados na bancada em 02/11/2026, com o firmware 
 
 \section{PARTIDA NA BANCADA}
 
-Com os ganhos de projeto ($K_i=0{,}05$) e a haste em repouso, a placa foi reiniciada: durante 2~s o firmware calibra o giroscópio com o motor desligado e, em seguida, arma o controle. A haste sobe de $-36{,}9^\circ$ e entra, permanecendo, na faixa de $\pm2^\circ$ em torno do alvo ($0{,}7^\circ$) em 6,6~s contados do primeiro registro. A saída máxima foi de 20,7\%, bem abaixo do limite de 32\%, de modo que a saída não saturou na partida (Figura~\ref{fig:partida_real}).
+Com os ganhos de projeto ($K_i=0{,}05$) e a haste em repouso, a placa foi reiniciada: durante 2~s o firmware calibra o giroscópio com o motor desligado e, em seguida, arma o controle. A haste sobe de $-36{,}9^\circ$ e, a partir de 6,6~s contados do primeiro registro, fica dentro da faixa de $\pm2^\circ$ em torno do alvo ($0{,}7^\circ$). A saída chegou a no máximo 20,7\%, bem abaixo do limite de 32\%, então o PWM não saturou na partida (Figura~\ref{fig:partida_real}).
 \begin{figure}[htbp]
 \centering\caption{Partida real após o reset, comparada com a simulação.}\label{fig:partida_real}
 \includegraphics[width=.85\textwidth]{results/partida_real_vs_sim.pdf}
@@ -14,7 +14,7 @@ A simulação, ajustada ao PWM de pairar medido (20,2\%), previu 5,7~s para a me
 
 \section{FILTRO COMPLEMENTAR: COM E SEM FILTRO}
 
-Com o motor ligado, o ângulo calculado só pelo acelerômetro (``sem filtro'') é recalculado a partir das acelerações X e Z registradas e comparado com o ângulo do firmware, que em voo é a integral do giroscópio. Em repouso, no primeiro registro, os dois diferem em $0{,}2^\circ$ ($-37{,}1^\circ$ contra $-36{,}9^\circ$). Em voo pairando, o acelerômetro tem média de $6{,}4^\circ$, desvio padrão de $8{,}3^\circ$ e extremos de $-9{,}5^\circ$ a $+32{,}7^\circ$, contra desvio de $0{,}33^\circ$ e extremos de $-0{,}1^\circ$ a $1{,}6^\circ$ do ângulo do firmware; a diferença quadrática média entre os dois é de $10{,}0^\circ$ (Figura~\ref{fig:filtro_pairando}). Na partida, a diferença quadrática média em voo foi de $8{,}3^\circ$ (Figura~\ref{fig:filtro_partida}).
+Esta coleta foi feita com a primeira versão do filtro, em que o ângulo em voo vinha só do giroscópio. O ângulo calculado só pelo acelerômetro (``sem filtro'') foi refeito a partir das acelerações X e Z registradas e comparado com o ângulo do firmware. Em repouso, no primeiro registro, os dois diferem em $0{,}2^\circ$ ($-37{,}1^\circ$ contra $-36{,}9^\circ$). Em voo pairando, o acelerômetro tem média de $6{,}4^\circ$, desvio padrão de $8{,}3^\circ$ e extremos de $-9{,}5^\circ$ a $+32{,}7^\circ$, contra desvio de $0{,}33^\circ$ e extremos de $-0{,}1^\circ$ a $1{,}6^\circ$ do ângulo do firmware; a diferença quadrática média entre os dois é de $10{,}0^\circ$ (Figura~\ref{fig:filtro_pairando}). Na partida, a diferença quadrática média em voo foi de $8{,}3^\circ$ (Figura~\ref{fig:filtro_partida}).
 \begin{figure}[htbp]
 \centering\caption{Ângulo sem filtro (acelerômetro) e do firmware, com a haste pairando.}\label{fig:filtro_pairando}
 \includegraphics[width=.85\textwidth]{results/filtro_pairando.pdf}
@@ -25,11 +25,11 @@ Com o motor ligado, o ângulo calculado só pelo acelerômetro (``sem filtro'') 
 \includegraphics[width=.85\textwidth]{results/filtro_partida.pdf}
 \fonte{Elaborado pelos autores (2026), dados da bancada.}
 \end{figure}
-Usar o acelerômetro diretamente no controle injetaria um erro de dezenas de graus e uma polarização de cerca de $+6^\circ$, e por isso, no firmware, ele só corrige o ângulo com o motor parado. Uma limitação: em voo não há uma referência independente do ângulo para o giroscópio; a comparação mostra que o acelerômetro não é confiável com a hélice girando, e não mede o erro do ângulo do firmware. O ensaio de movimento manual com o motor desligado, que mostraria o acelerômetro e o giroscópio concordando, não foi registrado nesta coleta.
+Usar o acelerômetro direto no controle traria um erro de dezenas de graus e um desvio fixo de cerca de $+6^\circ$. Por isso ele nunca entra direto no controle: na versão final, só corrige o ângulo devagar (Seção~\ref{sec:deriva}). Uma limitação: em voo não há outra referência de ângulo para conferir o giroscópio. A comparação mostra que o acelerômetro não é confiável com a hélice girando, mas não mede o erro do ângulo do firmware. O ensaio de movimento manual com o motor desligado, que mostraria o acelerômetro e o giroscópio concordando, não foi registrado nesta coleta.
 
 \section{PID COM E SEM ANTI-\textit{WINDUP}}
 
-Na bancada, a saída máxima da partida foi de 20,7\%, abaixo do limite de 32\%, de modo que a integração condicional nunca foi acionada. Para conferir, o PID do firmware foi refeito sobre o ângulo e a velocidade medidos, com e sem a integração condicional: a diferença máxima entre as saídas foi de $0{,}0000$ ponto percentual, e a saída refeita terminou em 20,4\%, contra 20,3\% da real. Isso valida a reprodução do PID no computador e mostra que, com os ganhos de projeto, o anti-\textit{windup} não altera o comportamento nesta partida. Seu efeito aparece quando a saída satura ou os ganhos são altos, como mostra a simulação (Tabela~\ref{tab:windup}). O firmware agora tem uma chave de ensaio (\texttt{aw=0|1} pelo ST-Link), ligada por padrão, que desativa só a integração condicional e mantém o limite do integrador; a comparação na bancada com ela não foi realizada.
+Na bancada, a saída máxima da partida foi de 20,7\%, abaixo do limite de 32\%, de modo que a integração condicional nunca foi acionada. Para conferir, o PID do firmware foi refeito sobre o ângulo e a velocidade medidos, com e sem a integração condicional: as duas saídas foram idênticas, e a saída refeita terminou em 20,4\%, contra 20,3\% da real. Isso valida a reprodução do PID no computador e mostra que, com os ganhos de projeto, o anti-\textit{windup} não altera o comportamento nesta partida. Seu efeito aparece quando a saída satura ou os ganhos são altos, como mostra a simulação (Tabela~\ref{tab:windup}). O firmware final tem uma chave de ensaio (\texttt{aw=0|1} pelo ST-Link), ligada por padrão, que desativa só a integração condicional e mantém o limite do integrador; a comparação na bancada com ela não foi realizada.
 
 \section{DERIVA DO GIROSCÓPIO E CORREÇÃO EM VOO}
 
@@ -44,7 +44,7 @@ Com correção, 174~s ligado (pairando) & $0{,}77^\circ$ & $2{,}8^\circ$ & $2{,}
 \end{tabularx}
 \fonte{Elaborado pelos autores (2026), dados da bancada em 02/11/2026.}
 \end{table}
-Com a correção, a diferença caiu de 13,5$^\circ$ para 1 a 2$^\circ$, e o desvio do ângulo do firmware ficou em $0{,}37^\circ$ (extremos de $-0{,}1^\circ$ a $1{,}9^\circ$). A diferença restante é a polarização do acelerômetro em voo, de $+1{,}4^\circ$ a $+2{,}8^\circ$ nestas leituras. O zero físico não foi conferido em voo com um instrumento externo. A única referência externa é a medida estática descrita acima, com a haste segurada no nível do celular: o acelerômetro marcou de $-1{,}4^\circ$ a $-1{,}9^\circ$ nessa posição, de modo que o zero físico pode diferir do zero do firmware em alguns graus, ordem de grandeza que não foi quantificada com mais precisão.
+Com a correção, a diferença caiu de 13,5$^\circ$ para 1 a 2$^\circ$, e o desvio do ângulo do firmware ficou em $0{,}37^\circ$ (extremos de $-0{,}1^\circ$ a $1{,}9^\circ$). A diferença restante é a polarização do acelerômetro em voo, de $+1{,}4^\circ$ a $+2{,}8^\circ$ nestas leituras. O zero físico não foi conferido em voo com um instrumento externo. A única referência externa é a medida feita com a haste parada e segurada no nível do celular, em que o acelerômetro marcou de $-1{,}4^\circ$ a $-1{,}9^\circ$. Assim, o zero físico pode diferir do zero do firmware em alguns graus.
 
 \section{DISTÚRBIOS}
 
@@ -52,7 +52,7 @@ Depois de um empurrão para cima ou para baixo, a haste volta ao alvo, mas com u
 
 \section{ESTABILIDADE DA EXECUÇÃO}
 
-Em 34\,870 ciclos de controle (174~s) da versão final, e em 153\,773 ciclos (768~s) da anterior, houve zero falhas de leitura do MPU6050, zero erros da UART e zero reinícios de I\textsuperscript{2}C no boot medido; em outros boots houve um reinício do barramento, recuperado automaticamente, sem falha de leitura. A folga mínima de pilha foi de 289, 139 e 127 palavras nas tarefas \texttt{control}, \texttt{cmd} e \texttt{telem} (Seção~\ref{sec:temporal}). O corte por ângulo não foi acionado nesta coleta.
+Em 34\,870 ciclos de controle (174~s) da versão final, e em 153\,773 ciclos (768~s) da anterior, não houve nenhuma falha de leitura do MPU6050, nenhum erro da UART e nenhum reinício do I\textsuperscript{2}C; em outras partidas da placa houve um reinício do barramento, recuperado sozinho, sem falha de leitura. A folga mínima de pilha foi de 289, 139 e 127 palavras nas tarefas \texttt{control}, \texttt{cmd} e \texttt{telem} (Seção~\ref{sec:temporal}). O corte por ângulo não foi acionado nesta coleta.
 
 \section{DESEMPENHO TEMPORAL}
 
@@ -60,11 +60,11 @@ Com o contador de ciclos do DWT (Seção~\ref{sec:temporal}), em 34\,870 ciclos 
 
 \chapter{MELHORIA E REFINO}\label{cap:refino}
 
-Os ganhos do PID de projeto ($K_p=0{,}06$, $K_i=0{,}05$, $K_d=0{,}04$, com anti-\textit{windup} por integração condicional) tinham sido escolhidos pela margem de fase (Capítulo~\ref{cap:processo}) e pareciam o estado final. Com o firmware instrumentado e a chave de ensaio do anti-\textit{windup}, foi possível testar outros valores na própria bancada, sem regravar, e decidir por dados.
+Os ganhos do PID de projeto ($K_p=0{,}06$, $K_i=0{,}05$, $K_d=0{,}04$, com anti-\textit{windup} por integração condicional) tinham sido escolhidos pela margem de fase (Capítulo~\ref{cap:processo}) e pareciam o estado final. Com o firmware instrumentado e a chave de ensaio do anti-\textit{windup}, foi possível testar outros valores na própria bancada, sem regravar, e escolher com base em medições.
 
 \section{PROCEDIMENTO}
 
-Foram avaliados cinco conjuntos (Tabela~\ref{tab:refino_conj}), escolhidos por margem de fase de pior caso de pelo menos $30^\circ$ no modelo identificado (\texttt{firmware/tools/arm\_margins.py}). Para cada conjunto os ganhos foram escritos na RAM pelo ST-Link, a haste estabilizou por 20~s e foram registradas $N=1\,200$ amostras (60~s a 20~Hz) do ângulo estimado pelo MPU6050, da velocidade e da saída, sempre com o mesmo $N$. Em seguida, com os mesmos ganhos, foram aplicados degraus de \textit{setpoint} de $+10^\circ$, $-20^\circ$ e volta ao alvo ($0{,}7^\circ$), com 12~s em cada patamar. O registro de 16~s da RAM é lido várias vezes e costurado pelo índice da amostra (\texttt{firmware/tools/captura\_longa.py} e \texttt{firmware/tools/captura\_degraus.py}); as 60 amostras mais antigas de cada leitura são descartadas porque a leitura não é atômica. Duas coletas de regime foram refeitas porque tiveram perturbações externas (desvios de mais de $3^\circ$ por poucos segundos).
+Foram avaliados cinco conjuntos (Tabela~\ref{tab:refino_conj}), escolhidos por margem de fase de pior caso de pelo menos $30^\circ$ no modelo identificado (\texttt{firmware/tools/arm\_margins.py}). Para cada conjunto os ganhos foram escritos na RAM pelo ST-Link, a haste estabilizou por 20~s e foram registradas $N=1\,200$ amostras (60~s a 20~Hz) do ângulo estimado pelo MPU6050, da velocidade e da saída. Em seguida, com os mesmos ganhos, foram aplicados degraus de \textit{setpoint} de $+10^\circ$, $-20^\circ$ e volta ao alvo ($0{,}7^\circ$), com 12~s em cada patamar. O registro de 16~s da RAM é lido várias vezes e costurado pelo índice da amostra (\texttt{firmware/tools/captura\_longa.py} e \texttt{firmware/tools/captura\_degraus.py}); as 60 amostras mais antigas de cada leitura são descartadas porque a leitura não é atômica. Duas coletas de regime foram refeitas porque tiveram perturbações externas (desvios de mais de $3^\circ$ por poucos segundos).
 \begin{table}[htbp]
 \centering\caption{Conjuntos de ganhos testados.}\label{tab:refino_conj}
 \begin{tabularx}{\textwidth}{llllX}

@@ -4,15 +4,15 @@
 
 Um sistema de tempo real é aquele cujo comportamento correto depende não só do resultado, mas do instante em que ele é produzido. Em sistemas de tempo real \textit{hard}, perder um prazo equivale a uma falha; em sistemas \textit{soft}, a perda apenas degrada o desempenho \cite{buttazzo2011,burns2009}. A malha de atitude de um multirrotor se aproxima do primeiro caso: o veículo é instável em malha aberta, e uma sequência de atualizações atrasadas deixa o ângulo crescer até a queda.
 
-A haste 1DOF reproduz essa característica. Com o motor desligado, a haste cai e repousa em cerca de $-38^\circ$ (valor lido pelo sensor); perto da horizontal não há torque restaurador e a planta se comporta como um integrador duplo, de modo que o empuxo precisa ser corrigido continuamente. Dois fatos medidos na bancada tornam o prazo concreto: o empuxo responde ao comando com atraso de cerca de 58~ms (Capítulo~\ref{cap:processo}) e a haste acelera cerca de $300^\circ/\mathrm{s}^2$ para cada 1\% de PWM. Se o controle ficar parado por algumas dezenas de milissegundos, a haste já percorreu uma fração relevante da faixa de operação. O período de 5~ms escolhido é cerca de doze vezes menor que o atraso do atuador. Se for atrasada, a malha perde margem de fase e passa a oscilar.
+A haste 1DOF reproduz essa característica. Com o motor desligado, a haste cai e repousa em cerca de $-38^\circ$ (valor lido pelo sensor); perto da horizontal não há torque restaurador e a planta se comporta como um integrador duplo, de modo que o empuxo precisa ser corrigido continuamente. Dois fatos medidos na bancada tornam o prazo concreto: o empuxo responde ao comando com atraso de cerca de 58~ms (Capítulo~\ref{cap:processo}) e a haste acelera cerca de $300^\circ/\mathrm{s}^2$ para cada 1\% de PWM. Se o controle ficar parado por algumas dezenas de milissegundos, a haste já percorreu uma fração relevante da faixa de operação. O período de 5~ms escolhido é cerca de doze vezes menor que o atraso do atuador. Se as atualizações atrasarem, a malha perde margem de fase e passa a oscilar.
 
-A política implementada é simples: uma leitura inválida pula o ciclo e mantém a saída anterior; se o sensor fica 50~ms sem responder (10 ciclos seguidos), o motor é desligado. O firmware não descarta amostras por idade; o atraso da malha é tratado na análise temporal (Seção~\ref{sec:temporal}). A classificação formal como tempo real \textit{hard} ou \textit{firm} depende das consequências físicas de uma perda de prazo; nesta bancada elas são a queda da haste, sem risco a pessoas, o que justifica tratar o prazo como crítico para o desempenho sem alegar certificação.
+A política implementada é simples: uma leitura inválida pula o ciclo e mantém a saída anterior; se o sensor fica 50~ms sem responder (10 ciclos seguidos), o motor é desligado. O firmware não descarta amostras por idade; o atraso da malha é tratado na análise temporal (Seção~\ref{sec:temporal}). Classificar o sistema como tempo real \textit{hard} ou \textit{firm} depende do que acontece quando um prazo é perdido. Aqui, o pior caso é a haste cair, sem risco para pessoas; por isso o prazo é tratado como crítico para o desempenho, e não para a segurança.
 
-Controladores de voo reais seguem a mesma lógica: \citeonline{rico2022} propõem um controlador de voo com um RTOS simplificado, de escalonador híbrido (ordem de chegada e prazo mais próximo, com prioridade dinâmica), validado por testes de escalonabilidade e por dados de voo, e com a unidade de sensores isolada da vibração. Aqui se adota o escalonamento por prioridades fixas do FreeRTOS, suficiente para uma única malha crítica e duas tarefas de apoio.
+Controladores de voo reais seguem a mesma lógica: \citeonline{rico2022} propõem um controlador de voo com um RTOS simplificado, de escalonador híbrido (ordem de chegada e prazo mais próximo, com prioridade dinâmica), validado por testes de escalonabilidade e por dados de voo, e com a unidade de sensores isolada da vibração. Este trabalho usa o escalonamento por prioridades fixas do FreeRTOS, que basta para uma malha crítica e duas tarefas de apoio.
 
 \section{SISTEMAS OPERACIONAIS DE TEMPO REAL}
 
-Sistemas operacionais fornecem mecanismos para organizar a execução de programas e o acesso a recursos. Em aplicações embarcadas, tarefas representam fluxos concorrentes, o escalonador seleciona o fluxo em execução e as interrupções sinalizam eventos externos. Um RTOS acrescenta previsibilidade: a tarefa pronta de maior prioridade sempre recebe o processador (preempção por prioridades fixas), e as primitivas de sincronização têm tempo limitado \cite{barry2016}. A previsibilidade, entretanto, depende da análise conjunta dos tempos de execução, das prioridades e dos bloqueios da aplicação \cite{burns2009,buttazzo2011}.
+Um sistema operacional organiza a execução dos programas e o acesso aos recursos do processador. Em um sistema embarcado, cada tarefa é um trecho de código que roda como se tivesse o processador só para si; o escalonador decide qual tarefa executa, e as interrupções avisam que algo aconteceu fora do processador. Um RTOS acrescenta previsibilidade: a tarefa pronta de maior prioridade sempre recebe o processador (preempção por prioridades fixas), e as primitivas de sincronização têm tempo limitado \cite{barry2016}. A previsibilidade, entretanto, depende da análise conjunta dos tempos de execução, das prioridades e dos bloqueios da aplicação \cite{burns2009,buttazzo2011}.
 
 \section{O FREERTOS}
 
@@ -26,7 +26,7 @@ O FreeRTOS é um núcleo de código aberto para microcontroladores que oferece t
  \item \textbf{Funções \texttt{FromISR}:} únicas permitidas dentro de interrupções. No Cortex-M3 as interrupções que as chamam precisam ter prioridade numérica igual ou maior que o limite configurado, pois no NVIC números menores são mais urgentes \cite{freertoscortex}.
 \end{itemize}
 
-O STM32F103 usa um núcleo Arm Cortex-M3 de até 72~MHz, sem unidade de ponto flutuante, com 20~kB de SRAM e 64~kB de Flash declarados (a placa utilizada reporta 128~kB) \cite{stm32f103ds}. As operações com \texttt{float} são executadas em software e entram nas medições de tempo.
+O STM32F103 usa um núcleo Arm Cortex-M3 de até 72~MHz, sem unidade de ponto flutuante, com 20~kB de SRAM e 64~kB de Flash declarados (a placa utilizada reporta 128~kB) \cite{stm32f103ds}. Por isso as contas com \texttt{float} são feitas em software e pesam no tempo de execução.
 
 \section{FUNDAMENTOS DE CONTROLE E ESTIMAÇÃO}
 
@@ -36,7 +36,7 @@ O acelerômetro mede a direção da gravidade e permite obter o ângulo absoluto
 \begin{equation}
  \hat\theta[k]=\alpha\left(\hat\theta[k-1]+T_s\,\omega_g[k]\right)+(1-\alpha)\,\theta_a[k],\qquad \alpha=\frac{\tau_f}{\tau_f+T_s}
 \end{equation}
-É um filtro de ordem um, de custo desprezível no Cortex-M3 e com um único parâmetro de ajuste, $\tau_f$. No firmware desta bancada, a correção pelo acelerômetro só é aplicada com o motor parado (Seção~\ref{sec:ruido}).
+É um filtro de ordem um, de custo desprezível no Cortex-M3 e com um único parâmetro de ajuste, $\tau_f$. No firmware, essa correção muda com o motor: desligado, o acelerômetro acerta o ângulo em poucos segundos; ligado, a correção é lenta, da ordem de 30~s, porque a vibração da hélice atrapalha a leitura (Seções~\ref{sec:ruido} e~\ref{sec:deriva}).
 
 \subsection{PID discreto, derivada na medida e anti-\textit{windup}}
 

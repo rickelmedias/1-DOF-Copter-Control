@@ -7,7 +7,7 @@ A planta é uma haste rígida que gira em torno de um eixo fixo. O empuxo $F$ é
  J\ddot\theta=l_mF-g\,S_m\cos\theta-b\dot\theta+\tau_d
  \label{eq:modelo}
 \end{equation}
-em que $J$ é o momento de inércia em torno do pivô, $l_m$ o braço do motor, $S_m$ o primeiro momento de massa assinado (motor e haste de um lado, sensor do outro), $b$ o atrito viscoso e $\tau_d$ um torque externo. O empuxo responde ao comando $u$ (PWM) com dinâmica de primeira ordem de constante $\tau_m$:
+em que $J$ é o momento de inércia em torno do pivô, $l_m$ o braço do motor, $S_m$ o momento estático das massas em relação ao pivô (positivo do lado do motor), $b$ o atrito viscoso e $\tau_d$ um torque externo. O empuxo responde ao comando $u$ (PWM) com dinâmica de primeira ordem de constante $\tau_m$:
 \begin{equation}
  \tau_m\dot F=F_{\max}\,u-F
 \end{equation}
@@ -15,7 +15,7 @@ Na horizontal o termo $\cos\theta$ tem derivada nula, de modo que, em torno de $
 
 \section{IDENTIFICAÇÃO NA BANCADA}
 
-As massas e o empuxo do kit não constam de especificação confiável. Em vez de estimá-los, a planta foi identificada com o próprio firmware, a partir dos registros de ângulo e saída gravados na RAM (6 de outubro de 2026). Dois registros com ganhos diferentes ajustaram o modelo reduzido da Equação~\ref{eq:modelo}, expresso diretamente em graus e em porcentagem de PWM:
+Não há dados confiáveis de massa e empuxo do kit. Em vez de estimá-los, a planta foi identificada com o próprio firmware, a partir dos registros de ângulo e saída gravados na RAM em 6 de outubro de 2026. O modelo reduzido da Equação~\ref{eq:modelo}, escrito direto em graus e em porcentagem de PWM, foi ajustado a dois registros feitos com ganhos diferentes:
 \begin{table}[htbp]
 \centering\caption{Parâmetros da planta identificados na bancada.}\label{tab:parametros}
 \begin{tabularx}{\textwidth}{Xrl}
@@ -33,13 +33,13 @@ A frequência de oscilação prevista pelo modelo para os ganhos usados na segun
 
 \section{CONTROLE E MARGENS DE ESTABILIDADE}
 
-Com a planta identificada, a margem de fase foi calculada pela resposta em frequência da malha (PID com derivada filtrada, integrador duplo, atraso de empuxo e atraso puro). Os ganhos iniciais ($K_p=1{,}0$, $K_i=0{,}5$, $K_d=0{,}15$) mantiveram o ângulo em ciclo-limite entre $-10{,}8^\circ$ e $+5{,}4^\circ$, com saída batendo nos limites. Os ganhos seguintes ($0{,}30/0{,}15/0{,}09$) tinham margem de fase de apenas $3{,}6^\circ$ e oscilaram $\pm3{,}7^\circ$. Os ganhos de projeto ($K_p=0{,}06$, $K_i=0{,}05$, $K_d=0{,}04$, filtro da derivada de 5~ms; refinados depois para $K_i=0{,}08$, Capítulo~\ref{cap:refino}) foram escolhidos para ter cerca de $43^\circ$ de margem de fase nominal e pelo menos $33^\circ$ com o ganho do atuador entre 120 e $380^\circ/\mathrm{s}^2$ por 1\% e o atraso entre 45 e 75~ms. A lição é que, com atraso de empuxo de dezenas de milissegundos, ganho alto produz oscilação, e não precisão.
+Com a planta identificada, a margem de fase foi calculada pela resposta em frequência da malha (PID com derivada filtrada, integrador duplo, atraso de empuxo e atraso puro). Com os ganhos iniciais ($K_p=1{,}0$, $K_i=0{,}5$, $K_d=0{,}15$), a haste ficou em ciclo-limite entre $-10{,}8^\circ$ e $+5{,}4^\circ$, com a saída batendo nos limites. Com $0{,}30/0{,}15/0{,}09$, a margem de fase era de só $3{,}6^\circ$ e a haste oscilou $\pm3{,}7^\circ$. Os ganhos de projeto, $K_p=0{,}06$, $K_i=0{,}05$ e $K_d=0{,}04$, com filtro da derivada de 5~ms, foram escolhidos para ter cerca de $43^\circ$ de margem de fase nominal e pelo menos $33^\circ$ com o ganho do atuador entre 120 e $380^\circ/\mathrm{s}^2$ por 1\% e o atraso entre 45 e 75~ms. Depois, o refino na bancada subiu $K_i$ para 0,08 (Capítulo~\ref{cap:refino}). A lição é que, com atraso de empuxo de dezenas de milissegundos, ganho alto produz oscilação, e não precisão.
 
 \section{SIMULAÇÃO}
 
 O simulador (\texttt{report/simulation/sim\_1dof.py}, Python com NumPy e Matplotlib) integra o modelo identificado com passo de 5~ms e reproduz o PID do firmware linha a linha: derivada na medida, filtro da derivada, limites de 10\% a 32\%, rampa de saída de 300\%/s e integrador iniciado em 16\% \footnote{Uma versão anterior do trabalho usava um simulador em Drake com parâmetros estimados; ela foi substituída por este modelo, que usa a planta identificada. Os resultados antigos não são reutilizados.}. Esse modelo também existe em C (\texttt{firmware/tests/sim\_control.c}), que compila o \texttt{control.c}, o \texttt{pid.c} e o \texttt{angle\_filter.c} do próprio firmware, de modo que a lógica embarcada é testada no computador.
 
-Partindo do repouso a $-38^\circ$, o PID levou a haste à faixa de $\pm2^\circ$ em torno do alvo em cerca de 5,7~s, com PWM de pairar de 20,2\% medido na bancada, e com sobressinal de cerca de $0{,}3^\circ$ (Figura~\ref{fig:partida}). Na bancada, a mesma partida levou 6,6~s (Capítulo~\ref{cap:resultados}). A subida lenta decorre dos ganhos baixos: o integrador, iniciado em 16\%, é quem sustenta a haste. A simulação supõe um batente superior em $+60^\circ$, fora da faixa de interesse, e aplica o PID atual do firmware aos dois conjuntos de ganhos.
+Usando o PWM de pairar medido na bancada (20,2\%), a simulação leva a haste do repouso, a $-38^\circ$, até a faixa de $\pm2^\circ$ em torno do alvo em cerca de 5,7~s, com sobressinal de cerca de $0{,}3^\circ$ (Figura~\ref{fig:partida}). Na bancada, a mesma partida levou 6,6~s (Capítulo~\ref{cap:resultados}). A subida lenta decorre dos ganhos baixos: o integrador, iniciado em 16\%, é quem sustenta a haste.
 \begin{figure}[htbp]
 \centering\caption{Partida simulada a partir do repouso, com os ganhos de projeto.}\label{fig:partida}
 \includegraphics[width=.85\textwidth]{results/partida.pdf}
@@ -48,7 +48,7 @@ Partindo do repouso a $-38^\circ$, o PID levou a haste à faixa de $\pm2^\circ$ 
 
 \section{POR QUE O ANTI-\textit{WINDUP}}\label{sec:antiwindup}
 
-Para isolar o efeito, a simulação segura a haste $25^\circ$ acima do alvo durante 5~s (como uma mão que a impede de se mover) e depois a solta. Durante a retenção o erro é negativo e constante; um integrador sem proteção desce sem limite e, ao soltar, a saída fica abaixo da necessária para pairar por muito tempo. Compararam-se três versões: integrador sem proteção, integrador apenas limitado a $[0;32]\%$ e integração condicional (a do firmware).
+Para isolar o efeito, a simulação segura a haste $25^\circ$ acima do alvo durante 5~s (como uma mão que a impede de se mover) e depois a solta. Durante a retenção o erro é negativo e constante; um integrador sem proteção desce sem limite e, ao soltar, a saída fica abaixo da necessária para pairar por muito tempo. Foram comparadas três versões: integrador sem proteção, integrador apenas limitado a $[0;32]\%$ e integração condicional (a do firmware), cada uma com os ganhos iniciais e com os de projeto. A simulação supõe um batente superior em $+60^\circ$, fora da faixa de interesse.
 \begin{table}[htbp]
 \centering\caption{Tempo para a haste voltar a $\pm2^\circ$ do alvo depois de solta (simulação).}\label{tab:windup}
 \begin{tabularx}{\textwidth}{Xrr}
@@ -76,14 +76,14 @@ Com os ganhos iniciais, altos, o \textit{windup} é grave: o integrador sem prot
 \begin{tabularx}{\textwidth}{p{4.3cm}X}
 \hline\textbf{Item} & \textbf{Função e observações}\\\hline
 Blue Pill (STM32F103C8T6) & Microcontrolador Cortex-M3 a 72~MHz, cristal de 8~MHz \cite{stm32f103ds}. Reporta 128~kB de Flash.\\
-MPU6050 (módulo) & Acelerômetro e giroscópio de três eixos por I\textsuperscript{2}C, endereço 0x68, com o pino AD0 em nível baixo (AD0 em nível alto daria 0x69) \cite{mpu6050rm}. Alimentado em 3,3~V pelo pino 3V3 da Blue Pill; o módulo tem um regulador de 3,3~V e aceita de 3,3 a 5~V em VCC, e o sensor em si trabalha em 3,3~V, a mesma tensão dos sinais do STM32.\\
+MPU6050 (módulo) & Acelerômetro e giroscópio de três eixos, ligado por I\textsuperscript{2}C no endereço 0x68 \cite{mpu6050rm}. Alimentado em 3,3~V pelo pino 3V3 da Blue Pill (o módulo aceita de 3,3 a 5~V).\\
 Driver DRV8871 (módulo) & Ponte H com limite de corrente; alimentação de 6,5 a 45~V \cite{drv8871ds}. Alimentado direto pelos 12~V.\\
-Motor \textit{coreless} 0720 com hélice & Motor de corrente contínua com escovas de kit Syma, 3,7~V nominal, dimensão 7~mm de diâmetro por 20~mm de comprimento, resistência de cerca de 2~$\Omega$ medida.\\
-Indutor em série com o motor & Indutor toroidal de 220~$\mu$H e 3~A, com fio de cobre enrolado em núcleo toroidal (Figura~\ref{fig:fotos_potencia}), que filtra a corrente pulsada do PWM (Seção~\ref{sec:indutor}). A resistência do enrolamento ficou abaixo do que o multímetro de bancada resolve (as pontas encostadas já marcam 0,2 a 0,3~$\Omega$ e o indutor marcou 0,1~$\Omega$), isto é, menor que 0,3~$\Omega$.\\
+Motor \textit{coreless} 0720 com hélice & Motor de corrente contínua com escovas, de kit Syma: 3,7~V nominais, 7~mm de diâmetro por 20~mm de comprimento e resistência medida de cerca de 2~$\Omega$.\\
+Indutor em série com o motor & Indutor toroidal de 220~$\mu$H e 3~A, com fio de cobre enrolado em núcleo toroidal (Figura~\ref{fig:fotos_potencia}), que filtra a corrente pulsada do PWM (Seção~\ref{sec:indutor}). Resistência do enrolamento menor que 0,3~$\Omega$, abaixo do que o multímetro consegue medir.\\
 Fonte de 12~V & Alimenta o driver e, pelo BEC, a lógica. O consumo total estimado é inferior a 1~A (motor em torno de 0,4~A e lógica da ordem de 100~mA).\\
 BEC 12~V para 5~V & Regulador chaveado que gera os 5~V da Blue Pill.\\
 Chave deslizante de 3 terminais & Chave de duas posições ligada em série ao positivo de 5~V entre o BEC e a Blue Pill; um dos terminais fica sem uso. Para cima liga e para baixo desliga (Figura~\ref{fig:alimentacao}).\\
-Estrutura impressa em 3D & Caixa que abriga a Blue Pill e o driver, base e haste. A massa não foi medida: como a planta foi identificada experimentalmente (Tabela~\ref{tab:parametros}), o modelo não depende dela.\\
+Estrutura & Base de madeira; suporte da haste, haste e caixa da eletrônica impressos em 3D. A massa não foi medida, porque o modelo foi identificado na bancada (Tabela~\ref{tab:parametros}).\\
 Parafuso e porca travada & Eixo da haste na base.\\
 ST-Link V2 & Gravação e leitura de diagnóstico por SWD.\\\hline
 \end{tabularx}
@@ -151,17 +151,17 @@ GND & todos & referência & terra comum\\ \hline
 \end{tabularx}
 \fonte{Elaborado pelos autores (2026), conforme \texttt{topicos2.ioc}.}
 \end{quadro}
-A Figura~\ref{fig:esquema} mostra a fiação por pino. Todos os terras são comuns. O indutor está em série entre OUT1 do driver e o fio do motor, e OUT2 vai direto ao outro fio do motor. O driver não tem capacitor externo em VM: só o indutor. Os módulos MPU6050 e DRV8871 têm resistores e componentes próprios, que não aparecem no desenho.
+A Figura~\ref{fig:esquema} mostra a fiação por pino. O motor fica entre OUT1 e OUT2 do driver, com o indutor em série no fio de OUT1, perto do driver e fora da haste. Não há capacitor externo na entrada VM do driver. Os componentes internos dos módulos MPU6050 e DRV8871, como resistores de \textit{pull-up}, não aparecem no desenho.
 \begin{figure}[htbp]
 \centering\caption{Diagrama de ligações do protótipo.}\label{fig:esquema}
 \includegraphics[width=\textwidth]{hardware/esquema_ligacoes.pdf}
 \fonte{Elaborado pelos autores (2026), conforme \texttt{topicos2.ioc} e a montagem do protótipo.}
 \end{figure}
-O motor fica entre OUT1 e OUT2 do driver, com o indutor em série com o fio de OUT1, perto do driver e fora da haste. Um mau contato no cabo do motor chegou a manter a haste parada com saída máxima durante 8~s; por isso todas as ligações foram soldadas.
+Um mau contato no cabo do motor chegou a manter a haste parada com saída máxima durante 8~s; por isso todas as ligações foram soldadas.
 
 \section{MONTAGEM MECÂNICA}
 
-A Blue Pill e o driver ficam dentro da caixa fechada; a base tem a haste presa por um parafuso com porca travada, que forma o eixo de rotação. O motor com hélice é fixado na ponta da haste e o MPU6050 na ponta oposta, preso com fita dupla face na ponta oposta ao motor. O sensor está montado de cabeça para baixo e a haste gira em torno do eixo Y dele; o firmware compensa com uma soma de $180^\circ$ ao ângulo (Capítulo~\ref{cap:desenvolvimento}). O sentido de empuxo foi confirmado visualmente na bancada.
+A Blue Pill e o driver ficam dentro da caixa fechada. A haste é presa ao suporte por um parafuso com porca travada, que forma o eixo de rotação. O motor com a hélice fica em uma ponta da haste e o MPU6050 na outra, preso com fita dupla face. O sensor está montado de cabeça para baixo e a haste gira em torno do eixo Y dele; o firmware compensa com uma soma de $180^\circ$ ao ângulo (Capítulo~\ref{cap:desenvolvimento}). O sentido de empuxo foi confirmado visualmente na bancada.
 
 \section{PROTÓTIPO FINAL}
 
@@ -186,7 +186,7 @@ A estrutura final tem uma base de madeira, o suporte da haste impresso em 3D, a 
 
 \section{ESTUDO DA POTÊNCIA DO MOTOR}\label{sec:potencia}
 
-O motor tem tensão nominal de 3,7~V e é alimentado por 12~V através do driver. A tensão média é controlada pelo PWM, limitado a 32\%, o que dá cerca de 3,8~V médios (12~V $\times$ 0,32), próximo do nominal. O limite do DRV8871 inclui desarme por sobrecorrente (3,7 a 6,4~A) com religação em 3~ms \cite{drv8871ds}, e o corte de baixa tensão em 6,5~V impede alimentar o driver direto da tensão nominal do motor. Daí a escolha dos 12~V com PWM baixo. A Seção~\ref{sec:indutor} mostra o efeito colateral dessa escolha.
+O motor tem tensão nominal de 3,7~V e é alimentado por 12~V através do driver. A tensão média é controlada pelo PWM, limitado a 32\%, o que dá cerca de 3,8~V médios (12~V $\times$ 0,32), próximo do nominal. O DRV8871 desarma por sobrecorrente entre 3,7 e 6,4~A e religa depois de 3~ms, e não funciona abaixo de 6,5~V \cite{drv8871ds}; por isso não dá para alimentá-lo com os 3,7~V do motor. Daí os 12~V com PWM baixo. A Seção~\ref{sec:indutor} mostra o efeito colateral dessa escolha.
 
 \chapter{DESENVOLVIMENTO DO FIRMWARE}\label{cap:desenvolvimento}
 
@@ -245,7 +245,7 @@ O código escrito pelo grupo fica em \texttt{firmware/Modules/}, separado do có
 \fonte{Elaborado pelos autores (2026).}
 \end{table}
 
-Todo o código escrito pelo grupo segue um mesmo padrão. As funções públicas são descritas no arquivo de cabeçalho com comentários Doxygen em português, e os trechos implementados à mão (PID, filtro, registradores do MPU6050, PWM do DRV8871) citam a fonte consultada. Os nomes carregam a unidade (\texttt{\_deg}, \texttt{\_pct}, \texttt{\_ms}) e seguem uma convenção: funções públicas no formato \texttt{Modulo\_Acao}, tipos terminados em \texttt{\_t}, variáveis de arquivo com prefixo \texttt{s\_}, globais com \texttt{g\_}, tarefas terminadas em \texttt{Task} e objetos do RTOS identificados como semáforo, \textit{mutex} ou fila no nome. Os módulos foram conferidos com as regras do MISRA C:2012; os desvios são todos de regras \textit{advisory}: uso direto de \texttt{float} (Dir.~4.6), conversões de endereço feitas pelas macros da HAL (Reg.~11.4) e funções globais exigidas pela HAL e pelo CubeMX (Reg.~8.7).
+Todo o código escrito pelo grupo segue o mesmo padrão. As funções públicas são documentadas com Doxygen, em português, e os trechos feitos à mão (PID, filtro, registradores do MPU6050, PWM do DRV8871) citam a fonte consultada. Os nomes indicam o módulo, o tipo e a unidade, como em \texttt{Motor\_Set}, \texttt{Pid\_t} e \texttt{angle\_deg}. Os módulos foram conferidos com as regras do MISRA C:2012; os desvios são todos de regras \textit{advisory}: uso direto de \texttt{float} (Dir.~4.6), conversões de endereço feitas pelas macros da HAL (Reg.~11.4) e funções globais exigidas pela HAL e pelo CubeMX (Reg.~8.7).
 
 Todos os ajustes do projeto ficam em um único arquivo, \texttt{app\_config.h}. As Tabelas~\ref{tab:parametros_fw}, \ref{tab:parametros_motor} e~\ref{tab:parametros_ctrl} explicam cada valor e o motivo da escolha.
 \begin{table}[H]
@@ -267,8 +267,8 @@ Todos os ajustes do projeto ficam em um único arquivo, \texttt{app\_config.h}. 
 \centering\caption{Parâmetros do motor (\texttt{app\_config.h}).}\label{tab:parametros_motor}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}p{2.3cm}X}
 \hline\textbf{Parâmetro} & \textbf{Valor} & \textbf{Significado e motivo}\\\hline
-\texttt{MOTOR\_SIGN} & $-1$ & Seleciona a entrada do driver que aciona o motor (IN2, PA9), a do sentido em que a hélice empurra a haste para cima. O motor nunca é invertido.\\
-\texttt{MOTOR\_PWM\_HZ} & 100~kHz & Frequência do PWM. É alta para a corrente do motor, de indutância muito baixa, ficar lisa. Em 1 e 20~kHz o driver desarmou; em 200~kHz a haste não equilibrou.\\
+\texttt{MOTOR\_SIGN} & $-1$ & Escolhe IN2 (PA9) como a entrada que aciona o motor, o sentido em que a hélice empurra a haste para cima. O motor nunca gira ao contrário.\\
+\texttt{MOTOR\_PWM\_HZ} & 100~kHz & Frequência do PWM. É alta para que a corrente do motor, que tem indutância muito baixa, fique lisa. Em 1 e 20~kHz o driver desarmou; em 200~kHz a haste não equilibrou.\\
 \texttt{MOTOR\_SLOW\_DECAY} & 1 & Entre os pulsos, o motor é freado em vez de solto. Com o indutor, a corrente fica lisa e a tensão média no motor é a saída em porcentagem vezes 12~V.\\
 \texttt{OUT\_LIMIT\_PCT} & 32\% & Teto da saída. Com 12~V equivale a cerca de 3,8~V médios, perto dos 3,7~V nominais; acima disso o motor esquentou.\\
 \texttt{MOTOR\_IDLE\_PCT} & 10\% & Saída mínima com o controle ativo: a hélice nunca para, o que evita o tempo de partida a cada correção.\\
@@ -290,7 +290,6 @@ Todos os ajustes do projeto ficam em um único arquivo, \texttt{app\_config.h}. 
 \texttt{SETPOINT\_DEFAULT\_DEG} & 0,7$^\circ$ & Ângulo-alvo da haste; pode ser alterado pela serial entre $\pm60^\circ$.\\
 \texttt{AUTO\_ARM} & 1 & O motor liga sozinho ao fim da calibração de 2~s, sem comando da serial.\\
 \texttt{ANGLE\_CUTOFF\_HI\_DEG} / \texttt{LO} & $+60^\circ$ / $-90^\circ$ & Corte por ângulo: fora dessa faixa o motor é desligado e só volta com o comando de armar ou com o reset.\\\hline
-\hline
 \end{tabularx}
 \fonte{Elaborado pelos autores (2026).}
 \end{table}
@@ -346,7 +345,14 @@ Ociosa e temporizadores & 0 e 2 & 128 e 256 & --- & núcleo do FreeRTOS (a taref
 
 As tarefas foram divididas por ritmo e criticidade, e não por função do código. Leitura do sensor, filtro, PID e atualização do motor ocorrem todos a cada 5~ms, em sequência, e cada etapa usa o resultado da anterior no mesmo ciclo. Como o STM32F103 tem um único núcleo, dividir essa cadeia em várias tarefas não traria paralelismo e acrescentaria filas, trocas de contexto e o risco de o PID usar uma amostra de ciclo anterior. O critério de divisão por período, prioridade e bloqueio é o recomendado na literatura de tempo real \cite{buttazzo2011,burns2009,barry2016}. Aqui há um sensor e uma taxa; controladores de voo maiores separam estimador e controle por terem vários sensores em taxas diferentes.
 
-A malha de controle, isolada, também poderia ser feita sem RTOS, como foi a versão anterior em Arduino. O FreeRTOS agrega valor ao redor dela: a tarefa \texttt{control}, de prioridade 3, pode interromper as tarefas lentas e assíncronas (comandos e telemetria pela serial, que usa envio por espera ativa), sem que isso exija lógica própria de interrupções; ela dorme no semáforo e acorda a cada 5~ms, com limite de espera de 20~ms que também detecta a falha do sensor; o \textit{mutex} com herança de prioridade protege os dados compartilhados entre três tarefas; e novas funções (por exemplo, um \textit{watchdog}) entram como tarefas, sem reescrever o laço principal. O FreeRTOS não torna o controle mais rápido nem garante o prazo por si só; o cumprimento do prazo depende da análise temporal (Seção~\ref{sec:temporal}). Duas melhorias possíveis não foram implementadas: ler o sensor por DMA, em vez de espera ativa de cerca de 0,4 a 0,6~ms, e disparar o ciclo pelo pino de dado pronto do MPU6050, em vez do TIM2, para fixar a idade da amostra.
+A malha de controle, sozinha, também poderia ser feita sem RTOS, como na versão anterior em Arduino. O que o FreeRTOS acrescenta está em volta dela:
+\begin{itemize}
+ \item a tarefa \texttt{control}, de prioridade 3, interrompe as tarefas lentas (comandos e telemetria pela serial, que envia por espera ativa) sem nenhuma lógica extra de interrupção;
+ \item a tarefa dorme no semáforo e acorda a cada 5~ms; o limite de espera de 20~ms também serve para detectar a falha do sensor;
+ \item o \textit{mutex} com herança de prioridade protege os dados que as três tarefas compartilham;
+ \item funções novas, como um \textit{watchdog}, entram como tarefas novas, sem reescrever o laço principal.
+\end{itemize}
+O FreeRTOS não deixa o controle mais rápido nem garante o prazo sozinho; se o prazo é cumprido, quem mostra é a análise temporal (Seção~\ref{sec:temporal}). Duas melhorias possíveis não foram implementadas: ler o sensor por DMA, em vez de espera ativa de cerca de 0,4 a 0,6~ms, e disparar o ciclo pelo pino de dado pronto do MPU6050, em vez do TIM2, para fixar a idade da amostra.
 
 \subsection{Ciclo de controle}
 
@@ -354,17 +360,17 @@ A cada estouro do TIM2, a interrupção só libera o semáforo (processamento di
 
 \subsection{Partida e proteção}
 
-Após o reset, o LED fica aceso e a tarefa mede, durante 2~s com a haste parada (400 amostras), o viés do giroscópio e o ângulo inicial pelo acelerômetro. Em seguida o controle arma automaticamente (\texttt{AUTO\_ARM}). Há duas proteções, ambas visíveis: sensor sem resposta por 50~ms $\to$ motor desligado, e corte por ângulo (acima de $+60^\circ$ ou abaixo de $-90^\circ$) $\to$ motor desligado até novo comando de armar ou reset. O corte foi acrescentado depois de a haste dar uma volta completa em 02/11/2026 (Seção~\ref{sec:deriva}). O motor também pode ser desligado por comando serial ou pelo ST-Link.
+Após o reset, o LED fica aceso e a tarefa mede, durante 2~s com a haste parada (400 amostras), o viés do giroscópio e o ângulo inicial pelo acelerômetro. Em seguida o controle arma automaticamente (\texttt{AUTO\_ARM}). Há duas proteções: o motor desliga se o sensor ficar 50~ms sem responder ou se o ângulo sair da faixa de $-90^\circ$ a $+60^\circ$; neste segundo caso, ele só volta com o comando de armar ou com o reset. O corte foi acrescentado depois de a haste dar uma volta completa em 02/11/2026 (Seção~\ref{sec:deriva}). O motor também pode ser desligado por comando serial ou pelo ST-Link.
 
 \subsection{Diagnóstico sem serial}
 
-Como não havia conversor USB-serial, o firmware guarda na RAM contadores, folga de pilha das tarefas e os tempos de cada ciclo medidos pelo contador de ciclos do DWT, a folga do \textit{heap} e um registro circular de 320 amostras (ângulo, velocidade, aceleração em X e Z, saída), que \texttt{firmware/tools/dbg\_read.py} lê pelo ST-Link sem parar o processador. Esse mesmo registro fornece os dados da Seção~\ref{sec:ruido}.
+Como não havia conversor USB-serial, o firmware guarda na RAM os contadores de falhas, a folga de pilha e de \textit{heap}, os tempos de cada ciclo (medidos pelo contador de ciclos do DWT) e um registro circular de 320 amostras com ângulo, velocidade, aceleração em X e Z e saída. O \textit{script} \texttt{firmware/tools/dbg\_read.py} lê tudo isso pelo ST-Link sem parar o processador. Esse mesmo registro fornece os dados da Seção~\ref{sec:ruido}.
 
 \section{USO DE MEMÓRIA}
 
 Segundo \texttt{arm-none-eabi-size}, o executável tem 42\,516~bytes de código, 116 de dados inicializados e 17\,364 de dados não inicializados, ou seja, cerca de 42~kB de Flash e 17~kB dos 20~kB de SRAM, dos quais 8~kB são o \textit{heap} do FreeRTOS e cerca de 3,3~kB o registro de diagnóstico. As tarefas ociosa e de temporizadores usam memória estática alocada pela camada CMSIS-RTOS, fora do \textit{heap}; este guarda as pilhas das três tarefas da aplicação (1\,536, 768 e 768~bytes), seus blocos de controle e os objetos de sincronização. Lido pelo ST-Link, o \textit{heap} tinha 4\,168~bytes livres em operação, com menor folga já vista de 3\,472~bytes (o pico ocorre na partida, enquanto a tarefa padrão do CubeMX ainda existe). A estimativa por configuração indicava 2~kB livres; a medida mostra que ela foi conservadora.
 
-A folga mínima de pilha, lida em operação normal (haste pairando, 17\,211 ciclos), foi de 289 palavras na tarefa \texttt{control} (de 384), 139 na \texttt{cmd} (de 192) e 127 na \texttt{telem} (de 192), ou seja, o uso máximo foi de 95, 53 e 65 palavras (380, 212 e 260~bytes), de 25\% a 34\% de cada pilha, de modo que a folga é de pelo menos 66\%.
+Com a haste pairando, a folga mínima de pilha foi de 289 palavras na tarefa \texttt{control} (de 384), 139 na \texttt{cmd} (de 192) e 127 na \texttt{telem} (de 192). O uso máximo ficou entre 25\% e 34\% de cada pilha.
 
 \section{ANÁLISE TEMPORAL}\label{sec:temporal}
 
@@ -383,13 +389,13 @@ Ciclos com latência acima de 5~ms & --- & 0\\\hline
 \end{tabularx}
 \fonte{Elaborado pelos autores (2026). Medições da bancada em 02/11/2026.}
 \end{table}
-A distribuição dos tempos é estreita (Figura~\ref{fig:histo_tempo}): 99,82\% das latências caíram entre 550 e 600~$\mu$s e os 0,18\% restantes entre 500 e 550~$\mu$s; o intervalo entre interrupções ficou entre 4\,998 e 5\,002~$\mu$s em todos os ciclos menos um, que chegou a 5\,009,5~$\mu$s.
+A distribuição dos tempos é estreita (Figura~\ref{fig:histo_tempo}): 99,82\% das latências ficaram entre 550 e 600~$\mu$s, e o restante entre 500 e 550~$\mu$s.
 \begin{figure}[htbp]
 \centering\caption{Histogramas da latência e do intervalo entre interrupções (escala vertical logarítmica).}\label{fig:histo_tempo}
 \includegraphics[width=.95\textwidth]{results/histogramas_tempo.pdf}
 \fonte{Elaborado pelos autores (2026), dados da bancada.}
 \end{figure}
-O atraso total entre a interrupção e o PWM ficou em no máximo 580~$\mu$s, ou 11,6\% do prazo, dentro da faixa estimada (no limite inferior dela). A medida é dominada pela leitura I\textsuperscript{2}C de 14~bytes, feita por espera ativa, que ocupa cerca de 0,5~ms. O \textit{jitter} do intervalo entre as interrupções foi de 11,2~$\mu$s no pior ciclo (e de 4~$\mu$s, entre 4\,998 e 5\,002~$\mu$s, em 99,997\% deles), por causa de outras interrupções curtas (SysTick, TIM4 da HAL, USART2), e o tempo para a tarefa acordar foi de no máximo 30,4~$\mu$s. A tarefa \texttt{control}, de maior prioridade, só pode ser atrasada por essas interrupções e por regiões críticas do núcleo; o \textit{mutex} \texttt{s\_dataMutex} é mantido apenas durante a cópia de uma estrutura de poucos bytes e conta com herança de prioridade. A transmissão pela UART, por espera ativa na tarefa \texttt{telem}, de prioridade menor, é interrompida pela tarefa \texttt{control}.
+O atraso total entre a interrupção e o PWM ficou em no máximo 580~$\mu$s, ou 11,6\% do prazo, dentro da faixa estimada (no limite inferior dela). A medida é dominada pela leitura I\textsuperscript{2}C de 14~bytes, feita por espera ativa, que ocupa cerca de 0,5~ms. O intervalo entre interrupções ficou entre 4\,998 e 5\,002~$\mu$s em todos os ciclos menos um, que chegou a 5\,009,5~$\mu$s: um \textit{jitter} de no máximo 11,2~$\mu$s, causado por outras interrupções curtas (SysTick, TIM4 da HAL, USART2). A tarefa levou no máximo 30,4~$\mu$s para acordar. A tarefa \texttt{control}, de maior prioridade, só pode ser atrasada por essas interrupções e por regiões críticas do núcleo; o \textit{mutex} \texttt{s\_dataMutex} é mantido apenas durante a cópia de uma estrutura de poucos bytes e conta com herança de prioridade. A transmissão pela UART, por espera ativa na tarefa \texttt{telem}, de prioridade menor, é interrompida pela tarefa \texttt{control}.
 
 Há ainda o atraso dos dados, que independe do RTOS: o filtro digital do MPU6050 em 44~Hz atrasa o sinal em cerca de 5~ms \cite{mpu6050rm}, e como a amostragem do sensor (200~Hz) não é sincronizada com o TIM2, a amostra lida tem idade de 0 a 5~ms. Somados, esses efeitos têm a mesma ordem dos 9~ms de atraso puro identificados na planta (Tabela~\ref{tab:parametros}).
 
@@ -399,15 +405,15 @@ O maior valor observado é evidência experimental da bancada, mas não prova o 
 
 \section{AQUECIMENTO DO MOTOR E O INDUTOR}\label{sec:indutor}
 
-O motor \textit{coreless} 0720 aquecia a ponto de não se poder tocá-lo. Os 12~V do driver sobre um motor de 3,7~V forçam um PWM de razão cíclica baixa, e esse motor tem indutância muito pequena (estimada em cerca de 7~$\mu$H, constante de tempo elétrica de poucos microssegundos, extrapolada de dados da maxon para motores \textit{coreless} de 8~mm \cite{maxonchoke}). O período de 10~$\mu$s do PWM a 100~kHz não alisa a corrente: ela acompanha cada pulso de 12~V, com picos de cerca de 2~A, e como o calor depende da corrente eficaz, e não da média, o motor dissipava cerca de 1,5~W contra 0,3~W em corrente contínua. Em 20~kHz e 1~kHz o modelo prevê corrente por pulso acima de 4~A, e o DRV8871 desarmava (religação em 3~ms), o que se ouvia como um zumbido agudo e o motor parando (a corrente de mais de 4~A é estimada pelo modelo, não medida).
+O motor \textit{coreless} 0720 aquecia a ponto de não se poder tocá-lo. Os 12~V do driver sobre um motor de 3,7~V forçam um PWM de razão cíclica baixa, e esse motor tem indutância muito pequena (estimada em cerca de 7~$\mu$H, constante de tempo elétrica de poucos microssegundos, extrapolada de dados da maxon para motores \textit{coreless} de 8~mm \cite{maxonchoke}). O período de 10~$\mu$s do PWM a 100~kHz não alisa a corrente: ela acompanha cada pulso de 12~V, com picos de cerca de 2~A, e como o calor depende da corrente eficaz, e não da média, o motor dissipava cerca de 1,5~W contra 0,3~W em corrente contínua. Em 20~kHz e 1~kHz o modelo prevê corrente por pulso acima de 4~A, e o DRV8871 desarmava (religação em 3~ms), o que se ouvia como um zumbido agudo seguido do motor parando.
 
-Três observações sustentam essa explicação: o motor ligado a duas pilhas AA (cerca de 3~V, sem driver) não esquentou; 200~kHz foi testado e a haste não equilibrou, provavelmente porque os pulsos ficam curtos demais para o driver (pulso mínimo de 800~ns \cite{drv8871ds}); e o cálculo (\texttt{firmware/tools/pwm\_heat.py}) sustenta a explicação, mas a corrente de pico não foi medida.
+Duas observações apoiam essa explicação: o motor ligado direto em duas pilhas AA (cerca de 3~V, sem driver) não esquentou; e, em 200~kHz, a haste não equilibrou, provavelmente porque os pulsos ficam curtos demais para o driver, cujo pulso mínimo é de 800~ns \cite{drv8871ds}. Os valores de corrente vêm do cálculo em \texttt{firmware/tools/pwm\_heat.py}; a corrente de pico não foi medida.
 
-Um capacitor em paralelo com o motor foi testado como alternativa ao indutor e não deu resultado; a solução ficou só com o indutor. A solução foi um indutor de potência em série com o motor. O cálculo de projeto indicava 100~$\mu$H, e a faixa de 47 a 220~$\mu$H serve; foi instalado um de 220~$\mu$H e 3~A, cuja corrente de saturação folga em relação aos picos do motor. Manteve-se o driver, os 12~V e o PWM de 100~kHz em modo de freio. Com ele a corrente fica lisa: o consumo do motor se manteve em torno de 0,4~A, em vez dos picos de cerca de 2~A previstos pelo modelo sem indutor. O valor foi lido com multímetro pelo grupo; o ponto exato da medição não foi registrado.
+A solução foi um indutor de potência em série com o motor. Antes, um capacitor em paralelo com o motor foi testado e não resolveu. O cálculo indicava 100~$\mu$H, e qualquer valor de 47 a 220~$\mu$H serve; foi instalado um de 220~$\mu$H e 3~A, com folga de corrente sobre os picos do motor. O driver, os 12~V e o PWM de 100~kHz em modo de freio continuaram iguais. Com o indutor, a corrente fica lisa: o consumo do motor ficou em torno de 0,4~A, em vez dos picos de cerca de 2~A previstos sem ele. O valor foi lido com multímetro pelo grupo; o ponto exato da medição não foi registrado.
 
 \section{RUÍDO DO MPU6050 E FILTRAGEM}\label{sec:ruido}
 
-Com o motor ligado, a leitura do ângulo pelo acelerômetro deixou de ser confiável. Nos registros: com a haste perto de $2^\circ$, o acelerômetro variou de $-58^\circ$ a $+18^\circ$; e em voo a mediana das amostras foi $+5^\circ$ (extremos de $-48^\circ$ a $+46^\circ$) enquanto a haste estava, de fato, perto de $+24^\circ$, como o giroscópio mostrou quando a haste caiu. Com o motor parado, acelerômetro e giroscópio concordavam. A vibração da hélice contamina a medida da gravidade; \citeonline{duong2025} avaliam experimentalmente o efeito da vibração na estimativa de inclinação com o MPU6050 em um quadrirrotor, na mesma linha.
+Com o motor ligado, a leitura do ângulo pelo acelerômetro deixou de ser confiável. Nos registros: com a haste perto de $2^\circ$, o acelerômetro variou de $-58^\circ$ a $+18^\circ$; e em voo a mediana das amostras foi $+5^\circ$ (extremos de $-48^\circ$ a $+46^\circ$) enquanto a haste estava, de fato, perto de $+24^\circ$, como o giroscópio mostrou quando a haste caiu. Com o motor parado, acelerômetro e giroscópio concordavam. A vibração da hélice contamina a medida da gravidade; \citeonline{duong2025} mediram o mesmo efeito em um quadrirrotor com MPU6050.
 
 A solução passou por camadas:
 \begin{enumerate}[label=\alph*)]
@@ -420,7 +426,7 @@ Uma tentativa intermediária, que rejeitava amostras do acelerômetro cujo módu
 
 \section{AJUSTE DO PID E O ANTI-\textit{WINDUP}}
 
-Mesmo com ganhos ajustados, o PID não conseguia manter a haste estritamente na horizontal: com ganhos altos a haste oscilava (ciclo-limite) e com ganhos baixos subia devagar. A sequência foi: ganhos equivalentes aos do Arduino; ganhos de 1,0/0,5/0,15 (ciclo-limite entre $-10{,}8^\circ$ e $+5{,}4^\circ$); 0,30/0,15/0,09 (oscilação de $\pm3{,}7^\circ$, margem de fase de $3{,}6^\circ$); os ganhos de projeto, de margem de fase de cerca de $43^\circ$, e, depois do refino na bancada, $K_i=0{,}08$ com a mesma margem de fase de pior caso (Seção~\ref{sec:antiwindup} e Capítulo~\ref{cap:processo}). O integrador inicia em 16\% (abaixo do PWM de pairar, cerca de 20\%), caso contrário a haste levaria mais de 8~s para sair do repouso com ganhos baixos. O anti-\textit{windup} por integração condicional foi mantido porque, enquanto a saída está limitada entre 10\% e 32\%, um integrador livre acumula erro, e a simulação mostrou que isso pode multiplicar por dez o tempo de recuperação (Tabela~\ref{tab:windup}).
+Mesmo com ganhos ajustados, o PID não conseguia manter a haste estritamente na horizontal: com ganhos altos a haste oscilava (ciclo-limite) e com ganhos baixos subia devagar. A sequência foi: ganhos equivalentes aos do Arduino; ganhos de 1,0/0,5/0,15 (ciclo-limite entre $-10{,}8^\circ$ e $+5{,}4^\circ$); 0,30/0,15/0,09 (oscilação de $\pm3{,}7^\circ$, margem de fase de $3{,}6^\circ$); os ganhos de projeto, de margem de fase de cerca de $43^\circ$, e, depois do refino na bancada, $K_i=0{,}08$ com a mesma margem de fase de pior caso (Seção~\ref{sec:antiwindup} e Capítulo~\ref{cap:processo}). O integrador começa em 16\%, um pouco abaixo do PWM de pairar (cerca de 20\%); sem isso, com ganhos baixos, a haste levaria mais de 8~s para sair do repouso. O anti-\textit{windup} por integração condicional foi mantido porque, enquanto a saída está limitada entre 10\% e 32\%, um integrador livre acumula erro, e a simulação mostrou que isso pode multiplicar por dez o tempo de recuperação (Tabela~\ref{tab:windup}).
 
 \section{DERIVA DO GIROSCÓPIO E A VOLTA COMPLETA DA HASTE}\label{sec:deriva}
 
