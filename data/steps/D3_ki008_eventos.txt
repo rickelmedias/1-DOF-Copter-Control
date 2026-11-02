@@ -1,0 +1,3 @@
++10 sp=10.7 instante_relogio_s=18.9
+-20 sp=-19.3 instante_relogio_s=31.6
+volta sp=0.7 instante_relogio_s=45.1

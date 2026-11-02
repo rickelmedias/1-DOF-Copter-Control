@@ -1,0 +1,12 @@
+ligado ha 86.1 s   estado=rodando
+ganhos: kp=0.06 ki=0.05 kd=0.04   alvo=0.7   armado=1   anti-windup=1
+agora:  angulo=0.6   setpoint=0.7   saida=20.2%
+falhas de leitura=0   reinicios do I2C=0   erros da UART=0
+amostras vistas: 16809
+angulo min=-36.9 max=2.8   velocidade max=61 graus/s
+folga de pilha (palavras): controle=289 comandos=139 telemetria=127
+tempos (DWT, 72 MHz): ticks TIM2=17211  acordadas=17211  perdidos=0  atrasos de prazo=0
+  intervalo entre ticks: min 4998.3 us  max 5009.5 us
+  interrupcao -> tarefa acordada: max 29.5 us   tarefa -> PWM escrito: max 542.3 us
+  interrupcao -> PWM escrito: max 560.3 us   media 538.4 us (16811 ciclos)
+heap: livre 4168 bytes   menor folga 3472 bytes

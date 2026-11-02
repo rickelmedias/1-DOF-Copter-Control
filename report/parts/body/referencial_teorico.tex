@@ -1,0 +1,49 @@
+\chapter{SISTEMAS CRÍTICOS, RTOS E FREERTOS}\label{cap:rtos}
+
+\section{POR QUE UM SISTEMA CRÍTICO}
+
+Um sistema de tempo real é aquele cujo comportamento correto depende não só do resultado, mas do instante em que ele é produzido. Em sistemas de tempo real \textit{hard}, perder um prazo equivale a uma falha; em sistemas \textit{soft}, a perda apenas degrada o desempenho \cite{buttazzo2011,burns2009}. A malha de atitude de um multirrotor se aproxima do primeiro caso: o veículo é instável em malha aberta, e uma sequência de atualizações atrasadas deixa o ângulo crescer até a queda.
+
+A haste 1DOF reproduz essa característica. Com o motor desligado, a haste cai e repousa em cerca de $-38^\circ$ (valor lido pelo sensor); perto da horizontal não há torque restaurador e a planta se comporta como um integrador duplo, de modo que o empuxo precisa ser corrigido continuamente. Dois fatos medidos na bancada tornam o prazo concreto: o empuxo responde ao comando com atraso de cerca de 58~ms (Capítulo~\ref{cap:processo}) e a haste acelera cerca de $300^\circ/\mathrm{s}^2$ para cada 1\% de PWM. Se o controle ficar parado por algumas dezenas de milissegundos, a haste já percorreu uma fração relevante da faixa de operação. O período de 5~ms escolhido é cerca de doze vezes menor que o atraso do atuador. Se for atrasada, a malha perde margem de fase e passa a oscilar.
+
+A política implementada é simples: uma leitura inválida pula o ciclo e mantém a saída anterior; se o sensor fica 50~ms sem responder (10 ciclos seguidos), o motor é desligado. O firmware não descarta amostras por idade; o atraso da malha é tratado na análise temporal (Seção~\ref{sec:temporal}). A classificação formal como tempo real \textit{hard} ou \textit{firm} depende das consequências físicas de uma perda de prazo; nesta bancada elas são a queda da haste, sem risco a pessoas, o que justifica tratar o prazo como crítico para o desempenho sem alegar certificação.
+
+Controladores de voo reais seguem a mesma lógica: \citeonline{rico2022} propõem um controlador de voo com um RTOS simplificado, de escalonador híbrido (ordem de chegada e prazo mais próximo, com prioridade dinâmica), validado por testes de escalonabilidade e por dados de voo, e com a unidade de sensores isolada da vibração. Aqui se adota o escalonamento por prioridades fixas do FreeRTOS, suficiente para uma única malha crítica e duas tarefas de apoio.
+
+\section{SISTEMAS OPERACIONAIS DE TEMPO REAL}
+
+Sistemas operacionais fornecem mecanismos para organizar a execução de programas e o acesso a recursos. Em aplicações embarcadas, tarefas representam fluxos concorrentes, o escalonador seleciona o fluxo em execução e as interrupções sinalizam eventos externos. Um RTOS acrescenta previsibilidade: a tarefa pronta de maior prioridade sempre recebe o processador (preempção por prioridades fixas), e as primitivas de sincronização têm tempo limitado \cite{barry2016}. A previsibilidade, entretanto, depende da análise conjunta dos tempos de execução, das prioridades e dos bloqueios da aplicação \cite{burns2009,buttazzo2011}.
+
+\section{O FREERTOS}
+
+O FreeRTOS é um núcleo de código aberto para microcontroladores que oferece tarefas, filas, semáforos, \textit{mutexes}, temporizadores de software e gerenciamento de memória \cite{freertosmanual,barry2016}. Os conceitos usados neste trabalho são:
+
+\begin{itemize}
+ \item \textbf{Tarefas e prioridades:} cada tarefa é uma função com laço infinito e pilha própria; maior número significa maior prioridade.
+ \item \textbf{Semáforo binário:} sinaliza um evento. A interrupção do temporizador libera o semáforo e a tarefa de controle, bloqueada à espera, acorda (processamento diferido da interrupção).
+ \item \textbf{Fila:} transfere cópias de dados entre uma interrupção ou tarefa produtora e uma tarefa consumidora. Usada para os bytes recebidos pela serial.
+ \item \textbf{\textit{Mutex} com herança de prioridade:} garante exclusão mútua em dados compartilhados; se uma tarefa de maior prioridade espera, a proprietária herda temporariamente a prioridade, o que limita a inversão de prioridade \cite{barry2016}.
+ \item \textbf{Funções \texttt{FromISR}:} únicas permitidas dentro de interrupções. No Cortex-M3 as interrupções que as chamam precisam ter prioridade numérica igual ou maior que o limite configurado, pois no NVIC números menores são mais urgentes \cite{freertoscortex}.
+\end{itemize}
+
+O STM32F103 usa um núcleo Arm Cortex-M3 de até 72~MHz, sem unidade de ponto flutuante, com 20~kB de SRAM e 64~kB de Flash declarados (a placa utilizada reporta 128~kB) \cite{stm32f103ds}. As operações com \texttt{float} são executadas em software e entram nas medições de tempo.
+
+\section{FUNDAMENTOS DE CONTROLE E ESTIMAÇÃO}
+
+\subsection{Estimação do ângulo: acelerômetro, giroscópio e filtro complementar}
+
+O acelerômetro mede a direção da gravidade e permite obter o ângulo absoluto por \texttt{atan2} \cite{nxpan3461}, mas é sensível a acelerações e vibrações. O giroscópio mede a velocidade angular e, integrado, fornece um ângulo suave, porém com deriva por causa do viés. O filtro complementar combina os dois: o giroscópio domina no curto prazo e o acelerômetro corrige a deriva no longo prazo \cite{colton2007}.
+\begin{equation}
+ \hat\theta[k]=\alpha\left(\hat\theta[k-1]+T_s\,\omega_g[k]\right)+(1-\alpha)\,\theta_a[k],\qquad \alpha=\frac{\tau_f}{\tau_f+T_s}
+\end{equation}
+É um filtro de ordem um, de custo desprezível no Cortex-M3 e com um único parâmetro de ajuste, $\tau_f$. No firmware desta bancada, a correção pelo acelerômetro só é aplicada com o motor parado (Seção~\ref{sec:ruido}).
+
+\subsection{PID discreto, derivada na medida e anti-\textit{windup}}
+
+O controlador PID soma uma parcela proporcional ao erro, uma integral do erro e uma derivativa \cite{astrom1995}. Na forma discreta com período $T_s$ e $e=\theta_r-\hat\theta$,
+\begin{equation}
+ u[k]=K_p\,e[k]+I[k]-K_d\,\dot{\hat\theta}[k],\qquad I[k]=I[k-1]+K_i\,e[k]\,T_s
+\end{equation}
+A derivada é calculada sobre a medida (aqui, a velocidade do giroscópio) e não sobre o erro, o que evita o pico de saída quando a referência muda \cite{astrom1995}.
+
+O atuador tem limites: o PWM varia de 0 a um máximo, e a hélice só empurra em um sentido. Quando a saída satura, o integrador continua acumulando o erro e, ao voltar à faixa linear, a saída fica presa no extremo até o integrador descarregar. Esse fenômeno é o \textit{integrator windup} \cite{astrom1989}. As técnicas clássicas são limitar o integrador (\textit{clamping}) e a integração condicional, que suspende a integração enquanto a saída está saturada e o erro a empurra mais para dentro da saturação \cite{astrom1989,astrom2008}. O firmware usa a integração condicional; o Capítulo~\ref{cap:processo} compara as alternativas por simulação.

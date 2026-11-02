@@ -1,0 +1,42 @@
+# Saidas de compilacao do firmware (STM32CubeIDE). O binario final fica em firmware/release/.
+firmware/Debug/
+firmware/Release/
+firmware/docs/html/
+*.elf
+*.map
+*.list
+*.o
+*.d
+
+# Saidas do LaTeX
+report/*.aux
+report/*.log
+report/*.toc
+report/*.lof
+report/*.lot
+report/*.loq
+report/*.bbl
+report/*.blg
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/*.xdv
+report/parts/**/*.aux
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Backups e arquivos do editor
+*.tar.gz
+*.zip
+*.swp
+.DS_Store
+.idea/
+.vscode/
+
+# Binario final do firmware (versionado de proposito, para regravar pelo STM32CubeProgrammer)
+!firmware/release/
+!firmware/release/*

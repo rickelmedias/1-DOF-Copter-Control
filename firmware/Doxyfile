@@ -1,0 +1,13 @@
+# Doxygen minimo para o firmware 1DOF. Uso: doxygen Doxyfile  (saida em docs/html)
+PROJECT_NAME           = "Braco 1DOF - STM32F103 + FreeRTOS"
+OUTPUT_DIRECTORY       = docs
+OUTPUT_LANGUAGE        = Brazilian
+INPUT                  = Modules
+FILE_PATTERNS          = *.c *.h *.md
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = Modules/ESTILO.md
+EXTRACT_STATIC         = YES
+EXTRACT_ALL            = NO
+WARN_IF_UNDOCUMENTED   = YES
+GENERATE_LATEX         = NO
+PREDEFINED             = DEBUG_ENABLE=1

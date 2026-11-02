@@ -1,0 +1,322 @@
+% !TEX program = xelatex
+% Modelo reduzido TEECII, Manual MSGQ-21.01 REV.16.
+
+\documentclass[
+    12pt,                % Tamanho da fonte base (corpo do texto)
+    fleqn,               % Equações alinhadas à esquerda, com numeração à direita
+    oneside,            % Impressão apenas em recto (frente das páginas)
+    a4paper,            % Tamanho do papel: A4 (21.00 cm × 29.70 cm)
+    chapter=TITLE,        % Títulos de capítulos convertidos em MAIÚSCULAS
+    section=TITLE,        % Títulos de seções convertidos em MAIÚSCULAS  
+    sumario=tradicional,% Estilo do sumário (tradicional = indentado)
+    english,            % Idioma adicional para hifenização de termos técnicos
+    brazil                % Idioma principal do documento (último da lista)
+]{abntex2}
+
+\usepackage{iftex}
+\ifPDFTeX
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{helvet}
+\else
+    \usepackage{fontspec}
+    \IfFileExists{fonts/arial.ttf}{
+        \setmainfont{Arial}[
+            Path=fonts/,
+            Extension=.ttf,
+            UprightFont=arial,
+            BoldFont=arialbd,
+            ItalicFont=ariali,
+            BoldItalicFont=arialbi
+        ]
+        \setsansfont{Arial}[
+            Path=fonts/,
+            Extension=.ttf,
+            UprightFont=arial,
+            BoldFont=arialbd,
+            ItalicFont=ariali,
+            BoldItalicFont=arialbi
+        ]
+    }{
+        \IfFileExists{fonts/Arial.ttf}{
+            \setmainfont{Arial}[
+                Path=fonts/,
+                Extension=.ttf,
+                UprightFont=Arial,
+                BoldFont=Arial Bold,
+                ItalicFont=Arial Italic,
+                BoldItalicFont=Arial Bold Italic
+            ]
+            \setsansfont{Arial}[
+                Path=fonts/,
+                Extension=.ttf,
+                UprightFont=Arial,
+                BoldFont=Arial Bold,
+                ItalicFont=Arial Italic,
+                BoldItalicFont=Arial Bold Italic
+            ]
+        }{
+            \IfFontExistsTF{Arial}{
+                \setmainfont{Arial}
+                \setsansfont{Arial}
+            }{
+                \PackageWarning{Fonte Arial}{A fonte Arial não foi encontrada; usando fonte sans-serif disponível no ambiente}
+            }
+        }
+    }
+\fi
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{indentfirst}        % Indenta o primeiro parágrafo de cada seção
+
+\usepackage[
+    top=3cm,                    % Margem superior: 3cm
+    bottom=2cm,                 % Margem inferior: 2cm
+    left=3cm,                   % Margem esquerda: 3cm
+    right=2cm                   % Margem direita: 2cm
+]{geometry}
+
+\usepackage{color}                % Controle de cores (para links coloridos)
+\usepackage{graphicx}            % Inclusão de gráficos (PNG, JPG, PDF)
+
+\usepackage{microtype}             % Melhorias de justificação e espaçamento
+\setlength{\emergencystretch}{3em}
+\raggedbottom
+\clubpenalty=10000
+\widowpenalty=10000 
+\usepackage{lib/unifacens}      % Adaptações específicas da UniFacens
+\usepackage{pdfpages}           % Para incluir PDFs no documento (ficha catalográfica)
+\usepackage{ragged2e}           % Alinhamento de texto melhorado
+\usepackage{enumitem}           % Configuração de alíneas com recuo suspenso
+
+\usepackage[bottom]{footmisc}   % Fixa posição de notas de rodapé no fim da página
+
+\usepackage[alf]{abntex2cite}    % Citações padrão ABNT (sistema alfabético)
+\addtociteoptionlist{abnt-style-options}
+% Manual REV.16, p.27: sobrenomes nas citações com inicial maiúscula.
+% Capitalização e separadores configurados pelo estilo bibliográfico.
+\usepackage{lib/url6023}        % Remove < > nas URLs das referências
+
+\usepackage{fix-cm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{caption}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,
+ keepspaces=true,frame=single,aboveskip=\baselineskip,belowskip=\baselineskip}
+\AtBeginEnvironment{tabularx}{\fontsize{11}{13}\selectfont\renewcommand{\arraystretch}{1.2}}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes, shapes.geometric, arrows.meta, positioning, calc}
+\counterwithout{equation}{chapter}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+\renewcommand{\theHequation}{\arabic{equation}}
+\renewcommand{\theHfigure}{\arabic{figure}}
+\renewcommand{\theHtable}{\arabic{table}}
+\setlength{\mathindent}{1.25cm}
+
+\renewcommand*{\chapnumfont}{\normalfont\fontsize{14}{17}\selectfont\bfseries\sffamily}
+\renewcommand*{\chaptitlefont}{\normalfont\fontsize{14}{17}\selectfont\bfseries\sffamily}
+
+\setsecheadstyle{\normalfont\normalsize\sffamily}
+\setsubsecheadstyle{\normalfont\normalsize\sffamily}
+\setsubsubsecheadstyle{\normalfont\normalsize\sffamily}
+
+\graphicspath{{./images/}}      % Define pasta padrão para buscar imagens
+
+\coordenadoria{Tópicos Especiais Engenharia da Computação II}
+\titulo{Controle em tempo real de uma plataforma de estabilização ativa por empuxo}
+\subtitulo{} 
+\integranteum{Gustavo Aguiar Brandão}
+\integrantedois{Lucas Carvalho}
+\integrantetres{Rickelme Dias}
+\integrantequatro{Guilherme Cambi Magarotti}
+\integrantecinco{Guilherme Felipe Reis Soares}
+\local{SOROCABA, SP}            
+\data{2026}                     
+
+\orientador{Marcos F. Jardini}
+\coorientador{}                 
+
+\preambulo{Trabalho de Tópicos Especiais em Engenharia de Computação II apresentado ao Centro Universitário Facens, como exigência parcial para aprovação na disciplina do curso de graduação em Engenharia de Computação. Documento de Projeto RTOS para a disciplina TEECII.}
+
+\definecolor{blue}{RGB}{41,5,195}  
+
+\makeatletter
+\hypersetup{
+    pdftitle={\@title},         
+    pdfauthor={Gustavo Aguiar Brandão; Lucas Carvalho; Rickelme Dias; Guilherme Cambi Magarotti; Guilherme Felipe Reis Soares},       
+    pdfsubject={\imprimirpreambulo}, 
+    pdfcreator={LaTeX with abnTeX2}, 
+    pdfkeywords={abnt}{latex}{abntex}{abntex2}{trabalho acadêmico}, 
+    colorlinks=true,            
+    linkcolor=black,            
+    citecolor=black,            
+    filecolor=black,            
+    urlcolor=black,             
+    bookmarksdepth=4            
+}
+\makeatother
+
+\makeatletter
+\setlength{\@fptop}{5pt}        
+\makeatother
+
+\newcommand{\quadroname}{Quadro}
+\newcommand{\listofquadrosname}{Lista de quadros}
+
+\newfloat[chapter]{quadro}{loq}{\quadroname}
+\newlistof{listofquadros}{loq}{\listofquadrosname}
+\newlistentry{quadro}{loq}{0}
+
+\setfloatadjustment{quadro}{\centering}
+\counterwithout{quadro}{chapter}
+\renewcommand{\theHquadro}{\arabic{quadro}}
+
+\renewcommand{\cftquadroname}{\MakeUppercase{\quadroname}\space} 
+\renewcommand*{\cftquadroaftersnum}{.}
+
+\renewcommand{\cftfigurename}{FIGURA\space}
+\renewcommand{\cfttablename}{TABELA\space}
+\renewcommand{\cfttableaftersnum}{.}
+\renewcommand*{\cftfigureaftersnum}{.}
+
+\setfloatlocations{quadro}{hbtp}
+
+\captionnamefont{\normalfont\normalsize}
+\captiontitlefont{\normalfont\normalsize}
+\captiondelim{ -- }
+\captionstyle{\centering}
+\captionsetup{font=normalsize,labelfont=normalfont,textfont=normalfont,justification=centering,singlelinecheck=false,labelsep=endash,position=top,skip=8pt}
+
+\makeatletter
+\renewcommand{\fonte}[1]{\par%
+  \vspace{8pt} % separação visual entre o elemento e sua fonte
+  {\centering\fontsize{10}{12}\selectfont Fonte: #1\par}%
+}
+\makeatother
+
+\makeatletter
+\settocpreprocessor{chapter}{%
+    \let\tempf@rtoc\f@rtoc%     
+    \def\f@rtoc{%               
+      \texorpdfstring{\MakeTextUppercase{%
+        \tempf@rtoc}%           
+      }{\tempf@rtoc}%           
+    }% 
+}
+\makeatother
+
+\makeatletter
+\let\oldcontentsline\contentsline
+\def\contentsline#1#2{%
+  \expandafter\ifx\csname l@#1\endcsname\l@section
+    \expandafter\@firstoftwo      
+  \else
+    \expandafter\@secondoftwo     
+  \fi
+  {%
+    \oldcontentsline{#1}{\MakeTextUppercase{#2}}%  
+  }{%
+    \oldcontentsline{#1}{#2}%     
+  }%
+}
+\makeatother
+
+\cftsetindents{chapter}{0cm}{0.5cm}
+\cftsetindents{section}{0cm}{0.8cm}
+\cftsetindents{subsection}{0cm}{1.1cm}
+\cftsetindents{subsubsection}{0cm}{1.45cm}
+
+\usepackage{float}              
+
+\setlength{\parindent}{1.25cm}  
+\setlength{\parskip}{0.0cm}     
+
+\newlist{alineastcc}{enumerate}{1}
+\setlist[alineastcc]{
+    label=\alph*),
+    align=left,
+    labelindent=1.88cm,
+    labelwidth=0.44cm,
+    labelsep=0.20cm,
+    leftmargin=2.52cm,
+    itemindent=0pt,
+    listparindent=0pt,
+    itemsep=0pt,
+    parsep=0pt,
+    topsep=0.5\baselineskip
+}
+
+\setlength{\afterchapskip}{\baselineskip}
+\setlength{\aftersecskip}{\baselineskip}
+\setlength{\aftersubsecskip}{\baselineskip}
+
+\makepagestyle{cabecalhopaginaimpar}
+  \makeoddhead{cabecalhopaginaimpar}  
+    {}                          
+    {}                          
+    {\fontsize{10}{12}\selectfont\thepage}            
+
+\begin{document}
+
+\selectlanguage{brazil}
+\OnehalfSpacing         
+\frenchspacing                  
+
+\hypersetup{pageanchor=false}
+\imprimircapa                   
+\hypersetup{pageanchor=true}
+\pretextual
+\imprimirfolhaderosto* 
+
+\input{parts/front_matter/resumo.tex}
+\input{parts/front_matter/lista_figuras.tex}
+\input{parts/front_matter/lista_tabelas.tex}
+\input{parts/front_matter/lista_abreviaturas.tex}
+\input{parts/front_matter/lista_siglas.tex}
+\input{parts/front_matter/lista_simbolos.tex}
+\clearpage
+
+\input{parts/front_matter/sumario.tex}
+
+\textual                        
+\pagestyle{cabecalhopaginaimpar}
+\aliaspagestyle{chapter}{cabecalhopaginaimpar}
+
+\input{parts/body/introducao.tex}
+\clearpage
+\input{parts/body/referencial_teorico.tex}
+\clearpage
+\input{parts/body/metodologias.tex}
+\clearpage
+
+\input{parts/body/resultados.tex}
+\clearpage
+\input{parts/body/conclusao.tex}
+\clearpage
+
+\makeatletter
+\renewcommand{\bibsection}{%
+    \cleardoublepage
+    \phantomsection
+    \Hy@raisedlink{\hyper@anchorstart{referencias.titulo}\hyper@anchorend}%
+    \def\@currentHref{referencias.titulo}%
+    \addcontentsline{toc}{chapter}{REFERÊNCIAS}
+    \begin{flushleft}
+        \chaptitlefont\MakeTextUppercase{\bibname}
+    \end{flushleft}
+    \vspace{\afterchapskip}
+}
+\makeatother
+\begin{SingleSpace}
+\RaggedRight
+\interlinepenalty=10000
+\setlength{\bibitemsep}{2\baselineskip}
+\bibliography{references}       
+\end{SingleSpace}
+
+\end{document}

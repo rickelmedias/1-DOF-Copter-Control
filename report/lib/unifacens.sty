@@ -1,0 +1,53 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{lib/unifacens}[2026/09/14 Modelo reduzido Facens]
+% Manual REV.16: capa p.3 adaptada conforme slides; rosto conforme README.
+\newcommand{\coordenadoria}[1]{\def\@coordenadoria{#1}}
+\newcommand{\subtitulo}[1]{\def\@subtitulo{#1}}
+\newcommand{\integranteum}[1]{\def\@integranteum{#1}}
+\newcommand{\integrantedois}[1]{\def\@integrantedois{#1}}
+\newcommand{\integrantetres}[1]{\def\@integrantetres{#1}}
+\newcommand{\integrantequatro}[1]{\def\@integrantequatro{#1}}
+\newcommand{\integrantecinco}[1]{\def\@integrantecinco{#1}}
+\coordenadoria{}\subtitulo{}
+\integranteum{}\integrantedois{}\integrantetres{}\integrantequatro{}\integrantecinco{}
+\newcommand{\autoresfacens}{%
+ \MakeUppercase{\@integranteum}\par
+ \MakeUppercase{\@integrantedois}\par
+ \MakeUppercase{\@integrantetres}\par
+ \MakeUppercase{\@integrantequatro}\par
+ \MakeUppercase{\@integrantecinco}\par}
+\newcommand{\titulofacens}{%
+ \MakeUppercase{\imprimirtitulo}%
+ \ifx\@subtitulo\empty\else: \@subtitulo\fi\par}
+\renewcommand{\imprimircapa}{%
+ \begin{titlingpage}
+ \centering\bfseries
+ \includegraphics[height=2cm]{logo-f.png}\par\vspace{1cm}
+ {\fontsize{16}{20}\selectfont\MakeUppercase{\@coordenadoria}\par}
+ \vspace*{2.6cm}
+ {\fontsize{14}{19}\selectfont\autoresfacens}
+ \vspace*{2.6cm}
+ {\fontsize{14}{19}\selectfont\titulofacens}
+ \vfill
+ {\fontsize{14}{18}\selectfont\imprimirlocal\par\imprimirdata\par}
+ \end{titlingpage}}
+\renewcommand{\folhaderostocontent}{%
+ \begin{center}
+ \includegraphics[height=2cm]{logo-f.png}\par\vspace{1cm}
+ {\fontsize{12}{17}\selectfont\bfseries\autoresfacens}
+ \vspace*{2.6cm}
+ {\fontsize{14}{19}\selectfont\bfseries\titulofacens}
+ \vspace*{3.0cm}
+ \end{center}
+ \begin{adjustwidth}{8cm}{0pt}
+ \normalsize\OnehalfSpacing\justifying
+ \setlength{\parindent}{0pt}
+ \microtypesetup{protrusion=false}
+ \noindent\imprimirpreambulo\par
+ \vspace{6pt}
+ \noindent Professor: \imprimirorientador\par
+ \end{adjustwidth}
+ \vfill
+ {\centering\fontsize{14}{18}\selectfont\bfseries
+ \imprimirlocal\par\imprimirdata\par}}
+\endinput
