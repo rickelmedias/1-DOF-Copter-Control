@@ -10,6 +10,18 @@
 \newcommand{\integrantecinco}[1]{\def\@integrantecinco{#1}}
 \coordenadoria{}\subtitulo{}
 \integranteum{}\integrantedois{}\integrantetres{}\integrantequatro{}\integrantecinco{}
+% RA dos integrantes, exibido somente na folha de rosto.
+\newcommand{\raum}[1]{\def\@raum{#1}}
+\newcommand{\radois}[1]{\def\@radois{#1}}
+\newcommand{\ratres}[1]{\def\@ratres{#1}}
+\newcommand{\raquatro}[1]{\def\@raquatro{#1}}
+\newcommand{\racinco}[1]{\def\@racinco{#1}}
+\raum{}\radois{}\ratres{}\raquatro{}\racinco{}
+\newcommand{\autorra}[2]{\ifx#1\empty\else\MakeUppercase{#1}\ifx#2\empty\else{} -- RA #2\fi\par\fi}
+\newcommand{\autoresrostofacens}{%
+ \autorra{\@integranteum}{\@raum}\autorra{\@integrantedois}{\@radois}%
+ \autorra{\@integrantetres}{\@ratres}\autorra{\@integrantequatro}{\@raquatro}%
+ \autorra{\@integrantecinco}{\@racinco}}
 \newcommand{\autoresfacens}{%
  \MakeUppercase{\@integranteum}\par
  \MakeUppercase{\@integrantedois}\par
@@ -34,7 +46,7 @@
 \renewcommand{\folhaderostocontent}{%
  \begin{center}
  \includegraphics[height=2cm]{logo-f.png}\par\vspace{1cm}
- {\fontsize{12}{17}\selectfont\bfseries\autoresfacens}
+ {\fontsize{12}{17}\selectfont\bfseries\autoresrostofacens}
  \vspace*{2.6cm}
  {\fontsize{14}{19}\selectfont\bfseries\titulofacens}
  \vspace*{3.0cm}
@@ -45,7 +57,7 @@
  \microtypesetup{protrusion=false}
  \noindent\imprimirpreambulo\par
  \vspace{6pt}
- \noindent Professor: \imprimirorientador\par
+ \noindent Professores: \begin{tabular}[t]{@{}l@{}}\imprimirorientador\end{tabular}\par
  \end{adjustwidth}
  \vfill
  {\centering\fontsize{14}{18}\selectfont\bfseries

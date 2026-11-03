@@ -1,0 +1,122 @@
+[1] parts/body/introducao.tex | chave(s): burns2009 [p.~3]
+    "Aplicações desse tipo constituem exemplos clássicos de sistemas de tempo real, nos quais o resultado somente é correto se for entregue dentro do prazo; não por acaso, \citeonline[p.~3]{burns2009} citam o sistema de controle de voo de uma aeronave de combate como exemplo de sistema de tempo real \textit{hard}, uma vez que a perda de um prazo pode levar a uma catástrofe."
+
+[2] parts/body/introducao.tex | chave(s): mane2019 
+    "Plataformas desse tipo são empregadas como bancadas didáticas e experimentais de helicópteros de um grau de liberdade, nas quais se avaliam desde controladores PID ajustados empiricamente \cite{mane2019} até técnicas de modos deslizantes \cite{cuero2020} e controle preditivo \cite{uyar2024}."
+
+[3] parts/body/introducao.tex | chave(s): cuero2020 
+    "Plataformas desse tipo são empregadas como bancadas didáticas e experimentais de helicópteros de um grau de liberdade, nas quais se avaliam desde controladores PID ajustados empiricamente \cite{mane2019} até técnicas de modos deslizantes \cite{cuero2020} e controle preditivo \cite{uyar2024}."
+
+[4] parts/body/introducao.tex | chave(s): uyar2024 
+    "Plataformas desse tipo são empregadas como bancadas didáticas e experimentais de helicópteros de um grau de liberdade, nas quais se avaliam desde controladores PID ajustados empiricamente \cite{mane2019} até técnicas de modos deslizantes \cite{cuero2020} e controle preditivo \cite{uyar2024}."
+
+[5] parts/body/referencial_teorico.tex | chave(s): buttazzo2011,burns2009 
+    "Um sistema de tempo real é aquele cujo comportamento correto depende não apenas do resultado lógico das computações, mas também do instante em que esse resultado é produzido \cite{buttazzo2011,burns2009}."
+
+[6] parts/body/referencial_teorico.tex | chave(s): burns2009 [p.~2--3]
+    "Segundo \citeonline[p.~2--3]{burns2009}, os sistemas de tempo real classificam-se conforme a consequência da perda de um prazo: nos sistemas \textit{hard}, é absolutamente imperativo que as respostas ocorram dentro do prazo especificado; nos sistemas \textit{soft}, os tempos de resposta são importantes, mas o sistema continua a funcionar corretamente se os prazos forem perdidos ocasionalmente; e um prazo que pode ser perdido ocasionalmente, mas cuja entrega tardia não traz nenhum benefício, é denominado \textit{firm}."
+
+[7] parts/body/referencial_teorico.tex | chave(s): burns2009 [p.~3]
+    "Os mesmos autores citam o sistema de controle de voo de uma aeronave de combate como exemplo de sistema \textit{hard}, pois a perda de um prazo pode levar a uma catástrofe \cite[p.~3]{burns2009}."
+
+[8] parts/body/referencial_teorico.tex | chave(s): rico2022 
+    "\citeonline{rico2022} propõem um controlador de voo para aplicações profissionais executado sobre um RTOS simplificado, com escalonador híbrido que combina ordem de chegada (\textit{first-come-first-serve}) e prazo mais próximo primeiro (\textit{earliest deadline first}) com prioridade dinâmica; o sistema é avaliado por testes de escalonabilidade para monoprocessadores e por dados reais de voo, e os sensores redundantes ficam em uma unidade isolada das vibrações da estrutura."
+
+[9] parts/body/referencial_teorico.tex | chave(s): barry2016 
+    "No escalonamento preemptivo por prioridades fixas, adotado pelo FreeRTOS, a tarefa pronta de maior prioridade sempre ocupa o processador e interrompe imediatamente uma tarefa de prioridade inferior \cite{barry2016}."
+
+[10] parts/body/referencial_teorico.tex | chave(s): burns2009,buttazzo2011 
+    "Essa política, por si só, não garante o cumprimento dos prazos: a previsibilidade depende da análise conjunta dos tempos de execução, dos períodos, das prioridades e dos bloqueios da aplicação \cite{burns2009,buttazzo2011}."
+
+[11] parts/body/referencial_teorico.tex | chave(s): freertosmanual,barry2016 
+    "O FreeRTOS é um núcleo de código aberto para microcontroladores que oferece tarefas, filas, semáforos, \textit{mutexes}, temporizadores de software e gerenciamento de memória \cite{freertosmanual,barry2016}."
+
+[12] parts/body/referencial_teorico.tex | chave(s): barry2016 
+    "A interrupção do temporizador libera o semáforo, e a tarefa de controle, bloqueada à espera dele, é acordada, técnica denominada processamento diferido da interrupção \cite{barry2016}."
+
+[13] parts/body/referencial_teorico.tex | chave(s): barry2016 
+    "Quando uma tarefa de maior prioridade aguarda o \textit{mutex}, a tarefa que o detém herda temporariamente essa prioridade, o que reduz, mas não elimina, os efeitos da inversão de prioridade \cite{barry2016}."
+
+[14] parts/body/referencial_teorico.tex | chave(s): freertoscortex 
+    "No Cortex-M3, as interrupções que as chamam devem ter prioridade lógica igual ou inferior ao limite \texttt{configMAX\_SYSCALL\_INTERRUPT\_PRIORITY}, o que corresponde a um valor numérico igual ou maior, pois no NVIC números menores representam prioridades mais altas \cite{freertoscortex}."
+
+[15] parts/body/referencial_teorico.tex | chave(s): stm32f103ds 
+    "O STM32F103 emprega um núcleo Arm Cortex-M3 de até 72~MHz, sem unidade de ponto flutuante, com 20~kB de SRAM e 64~kB de Flash na versão C8 \cite{stm32f103ds}; a placa utilizada, entretanto, reporta 128~kB de Flash."
+
+[16] parts/body/referencial_teorico.tex | chave(s): nxpan3461 
+    "Para uma rotação em torno do eixo Y, o ângulo de arfagem é dado por $\theta=\tan^{-1}\left(-G_x/G_z\right)$, calculado com a função \texttt{atan2} para preservar o quadrante \cite{nxpan3461}."
+
+[17] parts/body/referencial_teorico.tex | chave(s): nxpan3461 
+    "\citeonline{nxpan3461} ressalta, porém, que essa hipótese é necessária para a solução e que qualquer aceleração linear introduz erro na estimativa de orientação, o que ocorre com a vibração da hélice (Seção~\ref{sec:ruido})."
+
+[18] parts/body/referencial_teorico.tex | chave(s): colton2007 
+    "\citeonline{colton2007} descreve essa deriva como o efeito de uma pequena taxa residual que, quando o giroscópio parado não lê exatamente zero, continua a ser somada ao ângulo até afastá-lo do valor real."
+
+[19] parts/body/referencial_teorico.tex | chave(s): colton2007 
+    "O filtro complementar combina as duas medidas: o giroscópio predomina no curto prazo e o acelerômetro corrige a deriva no longo prazo \cite{colton2007}."
+
+[20] parts/body/referencial_teorico.tex | chave(s): colton2007 
+    "Para escalas de tempo menores que $\tau_f$, prevalece o giroscópio; para escalas maiores, o acelerômetro \cite{colton2007}."
+
+[21] parts/body/referencial_teorico.tex | chave(s): astrom1995 
+    "O controlador PID combina uma parcela proporcional ao erro, uma parcela proporcional à sua integral e uma parcela derivativa \cite{astrom1995}."
+
+[22] parts/body/referencial_teorico.tex | chave(s): astrom1995 [p.~74]
+    "A parcela derivativa atua sobre a medida (neste caso, a velocidade fornecida pelo giroscópio) e não sobre o erro, o que corresponde ao peso $c=0$ na ponderação da referência e evita grandes transitórios no sinal de controle quando a referência varia bruscamente \cite[p.~74]{astrom1995}."
+
+[23] parts/body/referencial_teorico.tex | chave(s): astrom1989 
+    "Esse fenômeno é denominado \textit{integrator windup} \cite{astrom1989}."
+
+[24] parts/body/referencial_teorico.tex | chave(s): astrom1989 
+    "\citeonline{astrom1989} apresentam dois métodos \textit{ad hoc} para evitá-lo, o rastreamento (\textit{back-calculation}) e a integração condicional, que podem ser combinados, além de uma abordagem geral baseada em observador."
+
+[25] parts/body/referencial_teorico.tex | chave(s): astrom1995 [p.~83--84]
+    "No rastreamento, quando a saída satura, o integrador é recalculado de modo que a saída permaneça no limite de saturação, preferencialmente de forma dinâmica, com uma constante de tempo de rastreamento \cite[p.~83--84]{astrom1995}; \citeonline[p.~306--308]{astrom2008} descrevem a mesma ideia como um caminho de realimentação adicional, de ganho $k_t$, entre o erro de saturação e a entrada do integrador."
+
+[26] parts/body/referencial_teorico.tex | chave(s): astrom2008 [p.~306--308]
+    "No rastreamento, quando a saída satura, o integrador é recalculado de modo que a saída permaneça no limite de saturação, preferencialmente de forma dinâmica, com uma constante de tempo de rastreamento \cite[p.~83--84]{astrom1995}; \citeonline[p.~306--308]{astrom2008} descrevem a mesma ideia como um caminho de realimentação adicional, de ganho $k_t$, entre o erro de saturação e a entrada do integrador."
+
+[27] parts/body/referencial_teorico.tex | chave(s): astrom1995 [p.~88--89]
+    "Na integração condicional, também chamada de \textit{integrator clamping}, a integração é desligada quando o controle está longe do regime permanente \cite[p.~88--89]{astrom1995}; na implementação deste trabalho, ela é suspensa enquanto a saída está saturada e o erro tende a aprofundar a saturação."
+
+[28] parts/body/metodologias.tex | chave(s): uyar2024 [p.~98]
+    "A Equação~\ref{eq:modelo} tem a mesma estrutura do modelo adotado por \citeonline[p.~98]{uyar2024} para um \textit{copter} de um grau de liberdade, $J\ddot\theta+b\dot\theta=F_hl_h-m_hgl_h$, com a diferença de que aquele autor desconsidera o termo em $\cos\theta$, aqui mantido para representar a variação do torque gravitacional com o ângulo."
+
+[29] parts/body/metodologias.tex | chave(s): cuero2020 
+    "\citeonline{cuero2020}, por sua vez, evitam a modelagem física por considerarem difícil medir parâmetros como o momento de inércia e as constantes do motor, e identificam experimentalmente uma função de transferência de segunda ordem entre o empuxo e o ângulo; abordagem semelhante, de identificação a partir de ensaios, foi adotada neste trabalho (Seção seguinte)."
+
+[30] parts/body/metodologias.tex | chave(s): stm32f103ds 
+    "Blue Pill (STM32F103C8T6) & Microcontrolador Cortex-M3 a 72~MHz, cristal de 8~MHz \cite{stm32f103ds}."
+
+[31] parts/body/metodologias.tex | chave(s): mpu6050rm 
+    "MPU6050 (módulo) & Acelerômetro e giroscópio de três eixos, ligado por I\textsuperscript{2}C no endereço 0x68 \cite{mpu6050rm}."
+
+[32] parts/body/metodologias.tex | chave(s): drv8871ds 
+    "Driver DRV8871 (módulo) & Ponte H com limite de corrente; alimentação de 6,5 a 45~V \cite{drv8871ds}."
+
+[33] parts/body/metodologias.tex | chave(s): drv8871ds 
+    "Segundo o fabricante, o DRV8871 opera com tensão de alimentação de 6,5 a 45~V, desliga a ponte H quando a corrente supera o limiar de proteção (entre 3,7 e 6,4~A) e religa após 3~ms \cite{drv8871ds}."
+
+[34] parts/body/metodologias.tex | chave(s): buttazzo2011,burns2009 
+    "Essa organização é coerente com o modelo de tarefas adotado na análise de escalonabilidade por prioridades fixas, em que cada tarefa é caracterizada por seu período, tempo de execução, prioridade e bloqueio \cite{buttazzo2011,burns2009}, e com a recomendação de manter as rotinas de interrupção curtas, transferindo o processamento para tarefas \cite{barry2016}."
+
+[35] parts/body/metodologias.tex | chave(s): barry2016 
+    "Essa organização é coerente com o modelo de tarefas adotado na análise de escalonabilidade por prioridades fixas, em que cada tarefa é caracterizada por seu período, tempo de execução, prioridade e bloqueio \cite{buttazzo2011,burns2009}, e com a recomendação de manter as rotinas de interrupção curtas, transferindo o processamento para tarefas \cite{barry2016}."
+
+[36] parts/body/metodologias.tex | chave(s): mpu6050rm 
+    "Há ainda o atraso dos dados, que independe do RTOS: o filtro digital do MPU6050 em 44~Hz atrasa o sinal em cerca de 5~ms \cite{mpu6050rm}, e como a amostragem do sensor (200~Hz) não é sincronizada com o TIM2, a amostra lida tem idade de 0 a 5~ms."
+
+[37] parts/body/metodologias.tex | chave(s): buttazzo2011 
+    "Ressalta-se que o maior valor observado constitui evidência experimental, mas não prova o pior caso de todas as execuções possíveis: medições fornecem apenas um limite inferior do tempo de execução no pior caso \cite{buttazzo2011}."
+
+[38] parts/body/metodologias.tex | chave(s): maxonchoke 
+    "Os 12~V do driver sobre um motor de 3,7~V forçam um PWM de razão cíclica baixa, e esse motor tem indutância muito pequena (estimada em cerca de 7~$\mu$H, constante de tempo elétrica de poucos microssegundos, extrapolada de dados da maxon para motores \textit{coreless} de 8~mm \cite{maxonchoke})."
+
+[39] parts/body/metodologias.tex | chave(s): drv8871ds 
+    "O fabricante recomenda pulsos de entrada de pelo menos 800~ns e informa que, a 200~kHz, a faixa útil de razão cíclica é de 16\% a 84\% \cite{drv8871ds}, limite inferior muito próximo da saída necessária para pairar (cerca de 20\%)."
+
+[40] parts/body/metodologias.tex | chave(s): nxpan3461 
+    "A vibração da hélice impõe acelerações lineares ao sensor, que violam a hipótese de que o acelerômetro mede apenas a gravidade, necessária ao cálculo da inclinação \cite{nxpan3461}; pela mesma razão, \citeonline{colton2007} recomenda que o acelerômetro seja usado apenas para corrigir o ângulo no longo prazo."
+
+[41] parts/body/metodologias.tex | chave(s): colton2007 
+    "A vibração da hélice impõe acelerações lineares ao sensor, que violam a hipótese de que o acelerômetro mede apenas a gravidade, necessária ao cálculo da inclinação \cite{nxpan3461}; pela mesma razão, \citeonline{colton2007} recomenda que o acelerômetro seja usado apenas para corrigir o ângulo no longo prazo."

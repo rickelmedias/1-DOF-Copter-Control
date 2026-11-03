@@ -3,7 +3,7 @@
 
 % Foto do protótipo final: usa images/prototype/<arquivo>.jpg (ou .png); sem o arquivo, mostra um quadro reservado.
 \newcommand{\fotofinal}[3]{%
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering\caption{#2}\label{#3}
 \IfFileExists{images/prototype/#1.jpg}{\includegraphics[width=.7\textwidth]{prototype/#1.jpg}}{%
 \IfFileExists{images/prototype/#1.png}{\includegraphics[width=.7\textwidth]{prototype/#1.png}}{%
@@ -13,25 +13,23 @@
 
 \chapter{INTRODUÇÃO}\label{cap:introducao}
 
-Veículos aéreos multirrotores só permanecem no ar enquanto uma malha de realimentação corrige a atitude centenas de vezes por segundo. Se a leitura do sensor, o cálculo do controle ou a atualização dos motores atrasam além do que a planta tolera, a atitude diverge e o veículo cai. Esse tipo de aplicação é o exemplo clássico de sistema de controle crítico: o resultado correto só vale se for entregue dentro do prazo \cite{burns2009,buttazzo2011}.
+Veículos aéreos multirrotores dependem de uma malha de realimentação que corrige a atitude centenas de vezes por segundo. Caso a leitura do sensor, o cálculo da lei de controle ou a atualização dos motores sofram atrasos superiores aos que a planta tolera, a atitude diverge e o veículo perde a sustentação. Aplicações desse tipo constituem exemplos clássicos de sistemas de tempo real, nos quais o resultado somente é correto se for entregue dentro do prazo, e os sistemas aviônicos figuram entre as aplicações que exigem esse tipo de computação \cite[p.~v]{buttazzo2024}; não por acaso, \citeonline[p.~3]{burns2009} citam o sistema de controle de voo de uma aeronave de combate como exemplo de sistema de tempo real \textit{hard}, uma vez que a perda de um prazo pode levar a uma catástrofe.
 
-Este trabalho estuda esse problema em escala de bancada. A Plataforma de Estabilização Ativa por Empuxo é uma haste com um grau de liberdade (1DOF) que gira em torno de um eixo, com um motor e uma hélice em uma ponta e um sensor inercial MPU6050 na ponta oposta. O motor só empurra a haste para cima; a gravidade a puxa para baixo. O microcontrolador STM32F103 lê o ângulo, calcula o empuxo necessário e mantém a haste na horizontal, de modo análogo ao que um controlador de voo faz com um eixo de atitude de um drone. Plataformas desse tipo são usadas para estudar modelos de helicópteros e estratégias de controle \cite{cuero2020,mane2019,uyar2024}.
+O presente trabalho estuda esse problema em escala de bancada. A Plataforma de Estabilização Ativa por Empuxo consiste em uma haste com um grau de liberdade (1-DOF), articulada em torno de um eixo, com um motor e uma hélice em uma extremidade e um sensor inercial MPU6050 na extremidade oposta. O empuxo do motor atua apenas no sentido de elevar a haste, enquanto a gravidade atua no sentido contrário. O microcontrolador STM32F103 lê o ângulo, calcula o empuxo necessário e mantém a haste na horizontal, de modo análogo ao que um controlador de voo realiza em um eixo de atitude de um drone.
 
-O objetivo da disciplina é aplicar sistemas operacionais de tempo real. Por isso, além de equilibrar a haste, o trabalho mostra como o FreeRTOS organiza a aplicação em tarefas, sincroniza a interrupção do temporizador com a tarefa de controle por um semáforo, protege dados compartilhados com \textit{mutexes} e isola a comunicação serial para que ela não atrase a malha crítica.
+Plataformas desse tipo são empregadas como bancadas didáticas e experimentais de helicópteros de um grau de liberdade, nas quais se avaliam desde controladores PID ajustados empiricamente \cite[p.~5]{mane2019} até técnicas de modos deslizantes \cite[p.~3292]{cuero2020} e controle preditivo, este último avaliado em simulação \cite{uyar2024}. Esses trabalhos concentram-se na lei de controle. O problema tratado aqui é complementar: nas proximidades da horizontal, a haste não tem torque restaurador e o empuxo responde ao comando com atraso, de modo que a mesma lei de controle só estabiliza a haste se for executada a intervalos regulares e com atraso conhecido. Trata-se, portanto, de garantir e medir o prazo da malha, e não apenas de escolher o controlador.
 
-O texto segue a ordem em que o projeto foi construído. O Capítulo~\ref{cap:rtos} justifica a escolha de um sistema crítico, resume o RTOS e o FreeRTOS e apresenta os fundamentos de controle usados. O Capítulo~\ref{cap:processo} traz a modelagem e a simulação. O Capítulo~\ref{cap:materiais} descreve materiais, ligações e montagem. O Capítulo~\ref{cap:desenvolvimento} detalha o firmware: módulos, configuração do STM32, tarefas e objetos do FreeRTOS, de forma que a montagem possa ser replicada. O Capítulo~\ref{cap:dificuldades} relata as dificuldades encontradas (aquecimento do motor, ruído do sensor, ajuste do PID) e as soluções. Os resultados, o refino dos ganhos do PID com testes na bancada (Capítulo~\ref{cap:refino}) e a conclusão fecham o trabalho.
+Como o objetivo da disciplina é a aplicação de sistemas operacionais de tempo real, o trabalho não se limita ao equilíbrio da haste: mostra-se também como o FreeRTOS organiza a aplicação em tarefas, sincroniza a interrupção do temporizador com a tarefa de controle por meio de um semáforo, protege os dados compartilhados com \textit{mutexes} e isola a comunicação serial, de modo que ela não atrase a malha crítica.
 
-O código-fonte do firmware, os dados medidos, os \textit{scripts} de simulação e este texto estão disponíveis em \url{https://github.com/rickelmedias/1-DOF-Copter-Control}.
+O objetivo geral deste trabalho é projetar, construir e avaliar uma malha de estabilização angular com FreeRTOS no STM32F103, mantendo a haste próxima de $0^\circ$ e demonstrando a aplicação do RTOS a um sistema de controle crítico. Como objetivos específicos, busca-se justificar a escolha de um sistema crítico e apresentar os fundamentos de RTOS e FreeRTOS; modelar a dinâmica da haste e simulá-la para escolher e comparar controladores; montar o protótipo e documentar materiais, ligações e configuração do microcontrolador de forma replicável; organizar a malha de controle (aquisição, filtragem, PID e acionamento) em uma tarefa periódica de maior prioridade, e os comandos e a telemetria em tarefas de menor prioridade, com semáforo, \textit{mutexes} e fila; tratar o ruído do MPU6050 com filtro complementar e evitar o \textit{windup} da ação integral; e avaliar o equilíbrio da haste e o desempenho temporal do controle.
 
-\section{APRESENTAÇÃO DO GRUPO}
+A escolha do tema justifica-se por reunir, em um protótipo de baixo custo e fácil reprodução, os elementos que tornam crítico o controle de um multirrotor: planta instável, atuador com atraso, sensor ruidoso e prazo fixo de atualização. Uma queda da haste não oferece risco a pessoas, o que permite ensaiar falhas e ajustes que seriam perigosos em um veículo real. Além disso, os tempos da malha são medidos no próprio microcontrolador, de modo que a afirmação de que o sistema cumpre o prazo é sustentada por dados, e não apenas pela configuração do RTOS.
 
-O trabalho é desenvolvido na disciplina Tópicos Especiais em Engenharia da Computação II, do curso de Engenharia da Computação do Centro Universitário Facens, por Gustavo Aguiar Brandão (RA 210349), Lucas Carvalho (RA 180352), Rickelme Dias (RA 224276), Guilherme Cambi Magarotti (RA 222292) e Guilherme Felipe Reis Soares (RA 211590), sob orientação do Prof. Marcos F. Jardini.
+Quanto à metodologia, trata-se de um estudo experimental conduzido em bancada e apoiado na literatura de sistemas de tempo real \cite{burns2009,buttazzo2024}, na documentação do FreeRTOS \cite{barry2016} e na literatura de controle PID \cite{astrom1995}. A planta foi modelada a partir das equações de movimento da haste e identificada com registros de ângulo e de saída gravados pelo próprio firmware; com o modelo identificado, calcularam-se as margens de estabilidade e simulou-se a malha em Python para escolher os ganhos e comparar as estratégias contra o \textit{windup}.
 
-\section{O PROTÓTIPO}
+O protótipo é composto por uma base de madeira sobre a qual se fixam o suporte da haste, impresso em 3D, e uma caixa, também impressa em 3D, que abriga a Blue Pill e o \textit{driver} do motor. A haste é presa ao suporte por um parafuso com porca travada, que atua como eixo de rotação. Em uma extremidade da haste encontra-se o motor com a hélice e, na extremidade oposta, o MPU6050, responsável pela medição da inclinação. Um indutor em série com o motor suaviza a corrente, que de outro modo seria pulsada (Capítulo~\ref{cap:dificuldades}). A Figura~\ref{fig:prototipo3d} mostra o modelo tridimensional inicial da haste e do suporte, anterior à caixa, e a Figura~\ref{fig:hardware}, a primeira montagem eletrônica, com a Blue Pill e o módulo do \textit{driver} em placa ilhada; o BEC, a chave e o indutor foram acrescentados depois, e as fotos do protótipo final estão no Capítulo~\ref{cap:materiais} (Figuras~\ref{fig:final_cima} a~\ref{fig:final_tras}).
 
-A base do protótipo é de madeira. Sobre ela ficam o suporte da haste, impresso em 3D, e uma caixa também impressa em 3D, que guarda a Blue Pill e o driver do motor. A haste gira presa ao suporte por um parafuso com porca travada, que serve de eixo. Na ponta da haste fica o motor com a hélice; na ponta oposta, o MPU6050, que mede a inclinação. Um indutor em série com o motor deixa a corrente estável, em vez de pulsada (Capítulo~\ref{cap:dificuldades}). As fotos do protótipo final estão no Capítulo~\ref{cap:materiais} (Figuras~\ref{fig:final_cima} a~\ref{fig:final_tras}). A Figura~\ref{fig:prototipo3d} mostra o modelo tridimensional inicial da haste e do suporte, anterior à caixa, e a Figura~\ref{fig:hardware} a primeira montagem eletrônica, com a Blue Pill e o módulo do driver em placa ilhada; o BEC, a chave e o indutor foram acrescentados depois (Capítulo~\ref{cap:materiais}).
-
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \caption{Modelo tridimensional inicial da haste e do suporte.}
   \includegraphics[width=.72\textwidth]{prototype/estrutura.jpg}
@@ -39,7 +37,7 @@ A base do protótipo é de madeira. Sobre ela ficam o suporte da haste, impresso
   \fonte{Elaborado pelos autores (2026).}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \caption{Primeira montagem eletrônica: Blue Pill e driver DRV8871 em placa ilhada.}
   \includegraphics[width=.72\textwidth]{prototype/eletronica.png}
@@ -47,27 +45,15 @@ A base do protótipo é de madeira. Sobre ela ficam o suporte da haste, impresso
   \fonte{Elaborado pelos autores (2026).}
 \end{figure}
 
-\section{OBJETIVOS E ESCOPO}
+O desempenho foi avaliado na bancada pelo erro do ângulo em regime e pela resposta a mudanças de referência, e o desempenho temporal, pelo contador de ciclos do processador, que registra a latência entre a interrupção do temporizador e a atualização do motor em todos os ciclos. O escopo abrange um único eixo de rotação e um único atuador, com referência em $0^\circ$ (horizontal). O controlador PID foi adotado em razão de sua estrutura simples e da existência de uma implementação anterior em Arduino, sem RTOS, que já havia equilibrado a haste, embora sem qualquer registro de medições; essa experiência motivou o projeto, mas não é utilizada como referência de desempenho.
 
-O objetivo geral é projetar, construir e avaliar uma malha de estabilização angular com FreeRTOS no STM32F103, mantendo a haste próxima de $0^\circ$ e demonstrando a aplicação do RTOS a um sistema de controle crítico. Como objetivos específicos:
+O trabalho foi desenvolvido na disciplina Tópicos Especiais em Engenharia da Computação II, do curso de Engenharia da Computação do Centro Universitário Facens, por Gustavo Aguiar Brandão (RA 210349), Lucas Carvalho (RA 180352), Rickelme Dias (RA 224276), Guilherme Cambi Magarotti (RA 222292) e Guilherme Felipe Reis Soares (RA 211590), sob orientação dos professores Marcos F. Jardini e Adilson Rocha. A Figura~\ref{fig:cronograma} apresenta o cronograma de Gantt elaborado pelo grupo para o período de agosto a dezembro de 2026, com as atividades, suas durações e os marcos de entrega previstos.
 
-\begin{alineastcc}
- \item justificar a escolha de um sistema crítico e apresentar os fundamentos de RTOS e FreeRTOS;
- \item modelar a dinâmica da haste e simulá-la para escolher e comparar controladores;
- \item montar o protótipo e documentar materiais, ligações e configuração do microcontrolador de forma replicável;
- \item organizar a malha de controle (aquisição, filtragem, PID e acionamento) em uma tarefa periódica de maior prioridade e os comandos e a telemetria em tarefas de menor prioridade, com semáforo, \textit{mutexes} e fila;
- \item tratar o ruído do MPU6050 com filtro complementar e evitar o \textit{windup} da ação integral;
- \item avaliar o equilíbrio da haste e o desempenho temporal do controle.
-\end{alineastcc}
-
-O estudo abrange um eixo de rotação e um único atuador, com referência em $0^\circ$ (horizontal). O PID foi adotado por sua estrutura simples e porque uma implementação anterior em Arduino, sem RTOS, já havia equilibrado a haste, embora sem medições. Isso motivou o projeto, mas não serve como medida de desempenho.
-
-\clearpage
-\section{CRONOGRAMA GERAL}
-A Figura~\ref{fig:cronograma} apresenta o cronograma de Gantt elaborado pelo grupo para o período de agosto a dezembro de 2026. A imagem reúne as atividades, suas durações e os marcos de entrega previstos.
 \begin{figure}[H]
 \centering
 \caption{Cronograma de Gantt do projeto.}\label{fig:cronograma}
 \includegraphics[width=\textwidth]{cronograma-gantt.jpg}
 \fonte{Elaborado pelos autores (2026).}
 \end{figure}
+
+O texto está organizado na ordem em que o projeto foi construído. O Capítulo~\ref{cap:rtos} justifica a escolha de um sistema crítico, apresenta os conceitos de RTOS e do FreeRTOS e resume os fundamentos de controle empregados. O Capítulo~\ref{cap:processo} trata da modelagem e da simulação da planta. O Capítulo~\ref{cap:materiais} descreve os materiais, as ligações e a montagem. O Capítulo~\ref{cap:desenvolvimento} detalha o firmware (módulos, configuração do STM32, tarefas e objetos do FreeRTOS) com o nível de detalhe necessário para a replicação. O Capítulo~\ref{cap:dificuldades} relata as dificuldades encontradas, como o aquecimento do motor, o ruído do sensor e o ajuste do PID, e as soluções adotadas. Por fim, são apresentados os resultados experimentais (Capítulo~\ref{cap:resultados}), o refino dos ganhos do PID com ensaios na bancada (Capítulo~\ref{cap:refino}) e as considerações finais. O código-fonte do firmware, os dados medidos, os \textit{scripts} de simulação e o texto deste relatório estão disponíveis publicamente no repositório do projeto no GitHub, em \url{https://github.com/rickelmedias/1-DOF-Copter-Control}. Os caminhos de arquivos citados ao longo do texto em fonte monoespaçada, como \texttt{firmware/tools/arm\_margins.py} ou \texttt{report/simulation/sim\_1dof.py}, referem-se a pastas e arquivos desse repositório e indicam onde estão o código e os dados que produziram cada tabela e figura.

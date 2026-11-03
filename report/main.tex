@@ -127,21 +127,21 @@
 
 \graphicspath{{./images/}}      % Define pasta padrão para buscar imagens
 
-\coordenadoria{Tópicos Especiais Engenharia da Computação II}
+\coordenadoria{Tópicos Especiais em Engenharia da Computação II}
 \titulo{Controle em tempo real de uma plataforma de estabilização ativa por empuxo}
 \subtitulo{} 
-\integranteum{Gustavo Aguiar Brandão}
-\integrantedois{Lucas Carvalho}
-\integrantetres{Rickelme Dias}
-\integrantequatro{Guilherme Cambi Magarotti}
-\integrantecinco{Guilherme Felipe Reis Soares}
+\integranteum{Gustavo Aguiar Brandão}\raum{210349}
+\integrantedois{Lucas Carvalho}\radois{180352}
+\integrantetres{Rickelme Dias}\ratres{224276}
+\integrantequatro{Guilherme Cambi Magarotti}\raquatro{222292}
+\integrantecinco{Guilherme Felipe Reis Soares}\racinco{211590}
 \local{SOROCABA, SP}            
 \data{2026}                     
 
-\orientador{Marcos F. Jardini}
+\orientador{Prof. Marcos F. Jardini\\Prof. Adilson Rocha}
 \coorientador{}                 
 
-\preambulo{Trabalho de Tópicos Especiais em Engenharia de Computação II apresentado ao Centro Universitário Facens, como exigência parcial para aprovação na disciplina do curso de graduação em Engenharia de Computação. Documento de Projeto RTOS para a disciplina TEECII.}
+\preambulo{Trabalho de Tópicos Especiais em Engenharia da Computação II apresentado ao Centro Universitário Facens como exigência parcial para aprovação na disciplina do curso de graduação em Engenharia da Computação. Documento de Projeto RTOS para a disciplina TEECII.}
 
 \definecolor{blue}{RGB}{41,5,195}  
 
@@ -194,7 +194,7 @@
 
 \makeatletter
 \renewcommand{\fonte}[1]{\par%
-  \vspace{8pt} % separação visual entre o elemento e sua fonte
+  \vspace{2pt} % manual: sem espaço entre o elemento e sua fonte
   {\centering\fontsize{10}{12}\selectfont Fonte: #1\par}%
 }
 \makeatother
@@ -276,7 +276,6 @@
 \input{parts/front_matter/resumo.tex}
 \input{parts/front_matter/lista_figuras.tex}
 \input{parts/front_matter/lista_tabelas.tex}
-\input{parts/front_matter/lista_abreviaturas.tex}
 \input{parts/front_matter/lista_siglas.tex}
 \input{parts/front_matter/lista_simbolos.tex}
 \clearpage
@@ -315,7 +314,7 @@
 \begin{SingleSpace}
 \RaggedRight
 \interlinepenalty=10000
-\setlength{\bibitemsep}{2\baselineskip}
+\setlength{\bibitemsep}{\baselineskip}
 \bibliography{references}       
 \end{SingleSpace}
 
